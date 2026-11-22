@@ -152,7 +152,7 @@ fun SettingsScreen(
 
         SettingsCard {
             Text(stringResource(R.string.about), style = MaterialTheme.typography.titleMedium)
-            Text("AllStar Mobile ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
+            Text("Mobile ASL Client ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
             Text(stringResource(R.string.about_text), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

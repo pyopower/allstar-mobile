@@ -32,8 +32,8 @@
     <string name="mode_r">Solo escucha</string>
     <string name="mode_c">Conectando</string>
 
-    <string name="welcome_title">Bienvenido a AllStar Mobile</string>
-    <string name="welcome_text">AllStar Mobile se conecta a tu propio nodo AllStarLink por IAX, como iaxRpt. Desde ahí puedes enlazar con cualquier nodo de la red y hablar.\n\nAñade tu nodo en Ajustes para empezar.</string>
+    <string name="welcome_title">Bienvenido a Mobile ASL Client</string>
+    <string name="welcome_text">Mobile ASL Client se conecta a tu propio nodo AllStarLink por IAX, como iaxRpt. Desde ahí puedes enlazar con cualquier nodo de la red y hablar.\n\nAñade tu nodo en Ajustes para empezar.</string>
     <string name="add_node">Añadir mi nodo</string>
     <string name="mic_needed">Hace falta el permiso de micrófono para transmitir.</string>
 

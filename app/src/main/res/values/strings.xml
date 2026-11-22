@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">AllStar Mobile</string>
+    <string name="app_name">Mobile ASL Client</string>
     <string name="tab_radio">Radio</string>
     <string name="tab_nodes">Nodes</string>
     <string name="tab_settings">Settings</string>
@@ -33,8 +33,8 @@
     <string name="mode_r">Monitor</string>
     <string name="mode_c">Connecting</string>
 
-    <string name="welcome_title">Welcome to AllStar Mobile</string>
-    <string name="welcome_text">AllStar Mobile connects to your own AllStarLink node over IAX, like iaxRpt. From there you can link to any node in the network and talk.\n\nAdd your node in Settings to start.</string>
+    <string name="welcome_title">Welcome to Mobile ASL Client</string>
+    <string name="welcome_text">Mobile ASL Client connects to your own AllStarLink node over IAX, like iaxRpt. From there you can link to any node in the network and talk.\n\nAdd your node in Settings to start.</string>
     <string name="add_node">Add my node</string>
     <string name="mic_needed">Microphone permission is needed to transmit.</string>
 

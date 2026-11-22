@@ -1,4 +1,4 @@
-# AllStar Mobile
+# Mobile ASL Client
 
 An Android client for [AllStarLink](https://www.allstarlink.org/) — connect to your own
 AllStar node over IAX, browse the whole network, link to any node and talk, all from your phone.
@@ -10,7 +10,7 @@ AllStar node over IAX, browse the whole network, link to any node and talk, all 
 ## How it works
 
 AllStarLink is not a "log in to the network" system like EchoLink: every user has (or has access
-to) a **node**. AllStar Mobile connects to *your* node exactly like the classic **iaxRpt** PC client
+to) a **node**. Mobile ASL Client connects to *your* node exactly like the classic **iaxRpt** PC client
 (a "radio-less" IAX2 login answered by `rpt(node|X)`), and your node does the linking:
 
 ```
@@ -71,7 +71,7 @@ Requires JDK 17+ and the Android SDK (compileSdk 36).
 
 ## License
 
-GPL-3.0-or-later. AllStar Mobile is an independent project, not affiliated with AllStarLink, Inc.
+GPL-3.0-or-later. Mobile ASL Client is an independent project, not affiliated with AllStarLink, Inc.
 Node list and statistics come from the public allstarlink.org services.
 
 ---

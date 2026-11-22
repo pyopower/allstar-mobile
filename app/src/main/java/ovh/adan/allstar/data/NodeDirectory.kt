@@ -74,7 +74,7 @@ class NodeDirectory(ctx: Context) {
 }
 
 object Http {
-    const val UA = "AllStarMobile/0.1 (Android)"
+    const val UA = "MobileASLClient/0.1 (Android)"
 
     fun get(url: String, timeoutMs: Int = 20000): String {
         var u = URL(url)
