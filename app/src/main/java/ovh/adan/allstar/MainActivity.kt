@@ -131,6 +131,7 @@ class MainActivity : ComponentActivity() {
         }
 
         val toggleFav: (String) -> Unit = { n ->
+            Radio.directory.rememberEchoLink(n)
             prefs.favorites = if (n in prefs.favorites) prefs.favorites - n else prefs.favorites + n
             version++
         }

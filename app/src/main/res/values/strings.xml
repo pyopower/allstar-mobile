@@ -38,7 +38,7 @@
     <string name="add_node">Add my node</string>
     <string name="mic_needed">Microphone permission is needed to transmit.</string>
 
-    <string name="search_hint">Number, callsign, place or EL 123456</string>
+    <string name="search_hint">Number, callsign or place</string>
     <string name="favorites">Favorites</string>
     <string name="recents">Recent</string>
     <string name="results">Results</string>
@@ -131,4 +131,17 @@
     <string name="ev_node_said">Node: %1$s</string>
     <string name="ev_links_now">Linked now: %1$s</string>
     <string name="ev_no_links">No nodes linked</string>
+    <string name="net_allstar">AllStar</string>
+    <string name="net_echolink">EchoLink</string>
+    <string name="el_repeaters">Repeaters</string>
+    <string name="el_links">Links</string>
+    <string name="el_conferences">Conferences</string>
+    <string name="el_count">%1$s stations on EchoLink now</string>
+    <string name="el_error">Could not load the EchoLink list</string>
+    <string name="el_busy">busy</string>
+    <string name="el_offline">Not on EchoLink now</string>
+    <string name="el_busy_long">Busy (in a QSO)</string>
+    <string name="nodes_online">%1$s online</string>
+    <string name="online_only">Online</string>
+    <string name="search_hint_el">Callsign, conference, place or EchoLink number</string>
 </resources>

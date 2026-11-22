@@ -1,7 +1,9 @@
 package ovh.adan.allstar.ui
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,6 +41,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +51,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,87 +69,175 @@ import ovh.adan.allstar.R
 import ovh.adan.allstar.Radio
 import ovh.adan.allstar.RadioState
 import ovh.adan.allstar.data.NodeDetails
+import ovh.adan.allstar.data.ElType
 import ovh.adan.allstar.data.NodeInfo
 import ovh.adan.allstar.data.isEchoLinkNumber
 import ovh.adan.allstar.data.NodeStats
 import java.text.NumberFormat
 
-private enum class Tab { FAVORITES, RECENTS }
+private enum class Net { ALLSTAR, ECHOLINK }
+private enum class Tab { FAVORITES, RECENTS, REPEATERS, LINKS, CONFERENCES }
 
 @Composable
 fun NodesScreen(state: RadioState, favorites: Set<String>, recents: List<String>,
                 onToggleFavorite: (String) -> Unit, onOpenNode: (String) -> Unit) {
     val nodes by Radio.directory.nodes.collectAsState()
+    val online by Radio.directory.online.collectAsState()
+    val echo by Radio.directory.echo.collectAsState()
+    var net by rememberSaveable { mutableStateOf(Net.ALLSTAR) }
     var query by remember { mutableStateOf("") }
-    var tab by remember { mutableStateOf(if (favorites.isEmpty()) Tab.RECENTS else Tab.FAVORITES) }
-    var results by remember { mutableStateOf<List<NodeInfo>>(emptyList()) }
+    var tab by rememberSaveable { mutableStateOf(Tab.FAVORITES) }
+    var onlineOnly by rememberSaveable { mutableStateOf(false) }
+    var list by remember { mutableStateOf<List<String>>(emptyList()) }
     var loading by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val el = net == Net.ECHOLINK
 
-    LaunchedEffect(query, nodes) {
-        results = withContext(Dispatchers.Default) { Radio.directory.search(query) }
+    LaunchedEffect(Unit) { Radio.directory.loadOnline() }
+    LaunchedEffect(net) {
+        if (net == Net.ECHOLINK) {
+            if (echo.isEmpty()) loading = true
+            error = Radio.directory.loadEchoLink().isFailure && Radio.directory.echo.value.isEmpty()
+            loading = false
+        }
+    }
+
+    val favs = favorites.filter { isEchoLinkNumber(it) == el }
+    val recs = recents.filter { isEchoLinkNumber(it) == el }
+    LaunchedEffect(net, query, tab, onlineOnly, nodes, online, echo, favorites, recents) {
+        list = withContext(Dispatchers.Default) {
+            val on = Radio.directory.online.value
+            fun List<String>.onlineFilter() = if (!onlineOnly || on.isEmpty()) this else filter { it in on }
+            when {
+                el && query.isNotBlank() -> (Radio.directory.directCandidates(query).filter(::isEchoLinkNumber) +
+                    Radio.directory.searchEchoLink(query).map { it.number }).distinct()
+                el -> when (tab) {
+                    Tab.REPEATERS -> Radio.directory.searchEchoLink("", ElType.REPEATER).map { it.number }
+                    Tab.LINKS -> Radio.directory.searchEchoLink("", ElType.LINK).map { it.number }
+                    Tab.CONFERENCES -> Radio.directory.searchEchoLink("", ElType.CONFERENCE).map { it.number }
+                    Tab.RECENTS -> recs
+                    else -> favs.sorted()
+                }
+                query.isNotBlank() -> {
+                    val r = (Radio.directory.directCandidates(query).filterNot(::isEchoLinkNumber) +
+                        Radio.directory.search(query).map { it.number }).distinct()
+                    // nodes on the air first
+                    (if (on.isEmpty()) r else r.sortedBy { if (it in on) 0 else 1 }).onlineFilter()
+                }
+                tab == Tab.RECENTS -> recs.onlineFilter()
+                else -> favs.sorted().onlineFilter()
+            }
+        }
     }
 
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.tab_nodes), style = MaterialTheme.typography.headlineMedium)
-                val sub = if (nodes.isEmpty()) stringResource(R.string.loading_nodes) else
-                    stringResource(R.string.nodes_count, NumberFormat.getIntegerInstance().format(nodes.size)) + " · " +
-                        stringResource(R.string.updated_ago, DateUtils.getRelativeTimeSpanString(
-                            System.currentTimeMillis() - Radio.directory.ageMs.coerceAtMost(365L * 86400_000)).toString()
-                            .replaceFirstChar { it.lowercase() })
+                val nf = NumberFormat.getIntegerInstance()
+                val sub = when {
+                    el && echo.isEmpty() -> stringResource(if (error) R.string.el_error else R.string.loading_nodes)
+                    el -> stringResource(R.string.el_count, nf.format(echo.size)) + " · " + ago(Radio.directory.echoAgeMs)
+                    nodes.isEmpty() -> stringResource(R.string.loading_nodes)
+                    else -> stringResource(R.string.nodes_count, nf.format(nodes.size)) +
+                        (if (online.isNotEmpty()) " · " + stringResource(R.string.nodes_online, nf.format(online.size)) else "") +
+                        " · " + ago(Radio.directory.ageMs)
+                }
                 Text(sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(onClick = {
                 loading = true
-                scope.launch { Radio.directory.load(forceRefresh = true); loading = false }
+                scope.launch {
+                    if (el) error = Radio.directory.loadEchoLink(force = true).isFailure && Radio.directory.echo.value.isEmpty()
+                    else { Radio.directory.load(forceRefresh = true); Radio.directory.loadOnline(force = true) }
+                    loading = false
+                }
             }, enabled = !loading) { Icon(Icons.Default.Refresh, stringResource(R.string.refresh)) }
         }
-        if (loading || nodes.isEmpty()) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
+        if (loading || (!el && nodes.isEmpty())) LinearProgressIndicator(Modifier.fillMaxWidth().padding(top = 8.dp))
+
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth().padding(top = 12.dp)) {
+            Net.entries.forEachIndexed { i, n ->
+                SegmentedButton(selected = net == n, onClick = {
+                    net = n
+                    if (tab != Tab.FAVORITES && tab != Tab.RECENTS && n == Net.ALLSTAR) tab = Tab.FAVORITES
+                }, shape = SegmentedButtonDefaults.itemShape(i, Net.entries.size)) {
+                    Text(stringResource(if (n == Net.ALLSTAR) R.string.net_allstar else R.string.net_echolink))
+                }
+            }
+        }
 
         OutlinedTextField(
             value = query, onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-            placeholder = { Text(stringResource(R.string.search_hint)) },
+            placeholder = { Text(stringResource(if (el) R.string.search_hint_el else R.string.search_hint)) },
             leadingIcon = { Icon(Icons.Default.Search, null) },
             trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { query = "" }) { Icon(Icons.Default.Clear, null) } },
             singleLine = true, shape = RoundedCornerShape(16.dp),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         )
 
-        val list: List<String>
-        if (query.isBlank()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (query.isBlank()) {
                 FilterChip(tab == Tab.FAVORITES, { tab = Tab.FAVORITES }, { Text(stringResource(R.string.favorites)) },
                     leadingIcon = { Icon(Icons.Default.Star, null, Modifier.size(18.dp)) })
                 FilterChip(tab == Tab.RECENTS, { tab = Tab.RECENTS }, { Text(stringResource(R.string.recents)) })
+                if (el) {
+                    FilterChip(tab == Tab.REPEATERS, { tab = Tab.REPEATERS }, { Text(stringResource(R.string.el_repeaters)) })
+                    FilterChip(tab == Tab.LINKS, { tab = Tab.LINKS }, { Text(stringResource(R.string.el_links)) })
+                    FilterChip(tab == Tab.CONFERENCES, { tab = Tab.CONFERENCES }, { Text(stringResource(R.string.el_conferences)) })
+                }
             }
-            list = if (tab == Tab.FAVORITES) favorites.sorted() else recents
-        } else list = (Radio.directory.directCandidates(query) + results.map { it.number }).distinct()
+            if (!el && online.isNotEmpty()) {
+                FilterChip(onlineOnly, { onlineOnly = !onlineOnly }, { Text(stringResource(R.string.online_only)) },
+                    leadingIcon = { StatusDot(LocalRadioColors.current.rx) })
+            }
+        }
 
         val linked = state.links.map { it.number }.toSet()
-        if (list.isEmpty()) {
+        if (list.isEmpty() && !loading) {
             Text(
                 stringResource(when {
                     query.isNotBlank() -> R.string.no_results
                     tab == Tab.FAVORITES -> R.string.no_favorites
-                    else -> R.string.no_recents
+                    tab == Tab.RECENTS -> R.string.no_recents
+                    else -> R.string.no_results
                 }),
                 color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = 24.dp),
             )
         }
         LazyColumn(contentPadding = PaddingValues(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             items(list, key = { it }) { n ->
-                NodeRow(n, Radio.directory.lookup(n), n in favorites, n in linked,
+                NodeRow(n, Radio.directory.lookup(n), nodeStatus(n), n in favorites, n in linked,
                     onClick = { onOpenNode(n) }, onStar = { onToggleFavorite(n) })
             }
         }
     }
 }
 
+private enum class Status { ONLINE, BUSY, OFFLINE, UNKNOWN }
+
+private fun nodeStatus(n: String): Status = if (isEchoLinkNumber(n)) {
+    val st = Radio.directory.echoStation(n)
+    when {
+        Radio.directory.echo.value.isEmpty() -> Status.UNKNOWN
+        st == null -> Status.OFFLINE
+        st.busy -> Status.BUSY
+        else -> Status.ONLINE
+    }
+} else when (Radio.directory.isOnline(n)) {
+    true -> Status.ONLINE
+    false -> Status.OFFLINE
+    null -> Status.UNKNOWN
+}
+
 @Composable
-private fun NodeRow(number: String, info: NodeInfo?, fav: Boolean, linked: Boolean, onClick: () -> Unit, onStar: () -> Unit) {
+private fun ago(ms: Long) = stringResource(R.string.updated_ago, DateUtils.getRelativeTimeSpanString(
+    System.currentTimeMillis() - ms.coerceAtMost(365L * 86400_000)).toString().replaceFirstChar { it.lowercase() })
+
+@Composable
+private fun NodeRow(number: String, info: NodeInfo?, status: Status, fav: Boolean, linked: Boolean, onClick: () -> Unit, onStar: () -> Unit) {
     val rc = LocalRadioColors.current
     Card(onClick = onClick, shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
@@ -151,12 +245,23 @@ private fun NodeRow(number: String, info: NodeInfo?, fav: Boolean, linked: Boole
             NodeBadge(number, highlight = linked)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                NodeTitle(info, number)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (status != Status.UNKNOWN) {
+                        StatusDot(when (status) { Status.ONLINE -> rc.rx; Status.BUSY -> rc.star; else -> rc.muted.copy(alpha = 0.5f) })
+                        Spacer(Modifier.width(8.dp))
+                    }
+                    NodeTitle(info, number)
+                    if (status == Status.BUSY) {
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.el_busy), style = MaterialTheme.typography.labelSmall, color = rc.star)
+                    }
+                }
                 val sub = if (info == null) stringResource(
                     if (isEchoLinkNumber(number)) R.string.echolink_node else R.string.not_in_list)
-                    else listOf(info?.description, info?.location).filter { !it.isNullOrBlank() }.joinToString(" · ")
+                    else listOf(info.description, info.location).filter { it.isNotBlank() }.joinToString(" · ")
                 if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.bodySmall, maxLines = 2,
-                    overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (status == Status.OFFLINE) 0.6f else 1f))
             }
             IconButton(onClick = onStar) {
                 Icon(if (fav) Icons.Default.Star else Icons.Default.StarBorder, stringResource(R.string.favorites),
@@ -189,7 +294,7 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
                     Text(info?.callsign?.ifBlank { null } ?: details?.callsign?.ifBlank { null }
-                        ?: if (echoLink) "EchoLink ${number.drop(1)}" else number,
+                        ?: if (echoLink) "EchoLink ${number.drop(1).trimStart('0')}" else number,
                         style = MaterialTheme.typography.titleLarge)
                     info?.description?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -203,7 +308,15 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
 
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = RoundedCornerShape(16.dp)) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (echoLink) Text(stringResource(R.string.echolink_hint), style = MaterialTheme.typography.bodyMedium)
+                    if (echoLink) {
+                        val st = Radio.directory.echoStation(number)
+                        when {
+                            st?.busy == true -> Pill(stringResource(R.string.el_busy_long), rc.star)
+                            st != null -> Pill(stringResource(R.string.online), rc.rx)
+                            Radio.directory.echo.value.isNotEmpty() -> Pill(stringResource(R.string.el_offline), rc.muted)
+                        }
+                        Text(stringResource(R.string.echolink_hint), style = MaterialTheme.typography.bodyMedium)
+                    }
                     else if (loading) Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(10.dp))
                         Text(stringResource(R.string.details_loading), style = MaterialTheme.typography.bodyMedium)

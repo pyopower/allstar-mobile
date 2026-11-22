@@ -260,7 +260,7 @@ object Radio {
 
     fun setMicGain(g: Float) { prefs.micGain = g; audio?.micGain = g }
 
-    private fun addRecent(n: String) { prefs.recents = listOf(n) + prefs.recents.filter { it != n } }
+    private fun addRecent(n: String) { directory.rememberEchoLink(n); prefs.recents = listOf(n) + prefs.recents.filter { it != n } }
 
     // ----------------------------------------------------------------- link list
 

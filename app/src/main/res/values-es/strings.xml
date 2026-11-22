@@ -37,7 +37,7 @@
     <string name="add_node">Añadir mi nodo</string>
     <string name="mic_needed">Hace falta el permiso de micrófono para transmitir.</string>
 
-    <string name="search_hint">Número, indicativo, lugar o EL 123456</string>
+    <string name="search_hint">Número, indicativo o lugar</string>
     <string name="favorites">Favoritos</string>
     <string name="recents">Recientes</string>
     <string name="results">Resultados</string>
@@ -130,4 +130,17 @@
     <string name="ev_node_said">Nodo: %1$s</string>
     <string name="ev_links_now">Enlazados ahora: %1$s</string>
     <string name="ev_no_links">Ningún nodo enlazado</string>
+    <string name="net_allstar">AllStar</string>
+    <string name="net_echolink">EchoLink</string>
+    <string name="el_repeaters">Repetidores</string>
+    <string name="el_links">Enlaces</string>
+    <string name="el_conferences">Salas</string>
+    <string name="el_count">%1$s estaciones en EchoLink ahora</string>
+    <string name="el_error">No se pudo cargar la lista de EchoLink</string>
+    <string name="el_busy">ocupado</string>
+    <string name="el_offline">No está conectado a EchoLink ahora</string>
+    <string name="el_busy_long">Ocupado (en QSO)</string>
+    <string name="nodes_online">%1$s en línea</string>
+    <string name="online_only">En línea</string>
+    <string name="search_hint_el">Indicativo, sala, lugar o número EchoLink</string>
 </resources>
