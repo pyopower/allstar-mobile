@@ -119,10 +119,10 @@
     <string name="cmd_link">+ número de nodo: enlazar (hablar y escuchar)</string>
     <string name="cmd_monitor">+ número de nodo: solo escuchar</string>
     <string name="cmd_unlink">+ número de nodo: desenlazar ese nodo</string>
-    <string name="cmd_status">Estado: el nodo dice en voz alta sus enlaces</string>
-    <string name="cmd_time">El nodo dice la hora</string>
-    <string name="cmd_id">El nodo se identifica (indicativo)</string>
-    <string name="quick_commands_note">Toca un comando para ponerlo en pantalla, añade el número de nodo si hace falta y pulsa Enviar. Son los códigos estándar de ASL3; tu nodo puede tener otros. Los nodos EchoLink son 3 + su número (EL 677857 → 3677857).</string>
+    <string name="cmd_status">Estado: el nodo dice en voz alta sus enlaces *</string>
+    <string name="cmd_time">El nodo dice la hora *</string>
+    <string name="cmd_id">El nodo se identifica (indicativo) *</string>
+    <string name="quick_commands_note">Toca un comando para ponerlo en pantalla, añade el número de nodo si hace falta y pulsa Enviar. Son los códigos estándar de ASL3; tu nodo puede tener otros. Los nodos EchoLink son 3 + su número (EL 677857 → 3677857).\n* Solo oirás la respuesta si tu nodo tiene la telemetría de voz activada (rpt.conf: telemdefault = 1). Muchos hubs y nodos puenteados a redes digitales la tienen apagada.</string>
     <string name="echolink_node">Nodo EchoLink · se enlaza a través de tu nodo</string>
     <string name="not_in_list">No está en la lista pública · se puede enlazar igual</string>
     <string name="echolink_hint">Nodo EchoLink. Tu nodo se enlaza a él con su propio módulo EchoLink, así que tu nodo debe tener EchoLink activado.</string>

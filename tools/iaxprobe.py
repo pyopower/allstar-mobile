@@ -75,6 +75,9 @@ class Call:
             if not pkt[0] & 0x80:  # mini frame
                 self.stats['mini'] += 1
                 self.stats['voice_bytes'] += len(pkt) - 4
+                if os.environ.get('RAW'):
+                    with open(os.environ['RAW'], 'ab') as fh:
+                        fh.write(pkt[4:])
                 if self.stats['mini'] % 50 == 1:
                     print(f'<< mini voice #{self.stats["mini"]} len={len(pkt) - 4}')
                 continue
