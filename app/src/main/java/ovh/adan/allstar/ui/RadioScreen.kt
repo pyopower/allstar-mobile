@@ -1,0 +1,420 @@
+package ovh.adan.allstar.ui
+
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Dialpad
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PowerSettingsNew
+import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import ovh.adan.allstar.Conn
+import ovh.adan.allstar.LogEvent
+import ovh.adan.allstar.R
+import ovh.adan.allstar.Radio
+import ovh.adan.allstar.RadioState
+import ovh.adan.allstar.data.LinkedNode
+import ovh.adan.allstar.data.Profile
+import ovh.adan.allstar.data.PttMode
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RadioScreen(
+    state: RadioState,
+    profiles: List<Profile>,
+    activeProfile: Profile?,
+    pttMode: PttMode,
+    onConnect: (Profile) -> Unit,
+    onSelectProfile: (Profile) -> Unit,
+    onAddProfile: () -> Unit,
+    onOpenNode: (String) -> Unit,
+) {
+    val rc = LocalRadioColors.current
+    var showKeypad by remember { mutableStateOf(false) }
+    var showLog by remember { mutableStateOf(false) }
+
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        Header(state, profiles, activeProfile, onConnect, onSelectProfile)
+
+        if (activeProfile == null) {
+            Welcome(onAddProfile)
+            return@Column
+        }
+
+        StatusCard(state)
+
+        LazyColumn(
+            Modifier.weight(1f).fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            item {
+                SectionTitle(stringResource(R.string.linked_nodes)) {
+                    if (state.links.size > 1 && state.conn == Conn.CONNECTED)
+                        TextButton(onClick = { Radio.unlinkAll() }) {
+                            Icon(Icons.Default.LinkOff, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
+                            Text(stringResource(R.string.unlink_all))
+                        }
+                }
+            }
+            if (state.links.isEmpty()) item {
+                Text(
+                    if (state.conn == Conn.CONNECTED) stringResource(R.string.no_links) else stringResource(R.string.connect_first),
+                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+            items(state.links, key = { it.number }) { l -> LinkedRow(l, state.conn == Conn.CONNECTED, onOpenNode) }
+            item {
+                Row(
+                    Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { showLog = !showLog }.padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SectionTitle(stringResource(R.string.activity), Modifier.weight(1f))
+                    Icon(if (showLog) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (showLog) items(state.events.take(40)) { EventRow(it) }
+            else state.events.firstOrNull()?.let { e -> item { EventRow(e) } }
+        }
+
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Box(Modifier.size(64.dp))
+            PttButton(state, pttMode)
+            Box(Modifier.size(64.dp), contentAlignment = Alignment.Center) {
+                Surface(
+                    onClick = { showKeypad = true }, enabled = state.conn == Conn.CONNECTED,
+                    shape = CircleShape, color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    modifier = Modifier.size(56.dp),
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Dialpad, stringResource(R.string.keypad),
+                            tint = if (state.conn == Conn.CONNECTED) MaterialTheme.colorScheme.onSurface else rc.muted)
+                    }
+                }
+            }
+        }
+    }
+
+    if (showKeypad) {
+        ModalBottomSheet(onDismissRequest = { showKeypad = false }) {
+            Keypad(onSend = { Radio.dtmf(it); showKeypad = false })
+        }
+    }
+}
+
+@Composable
+private fun Header(
+    state: RadioState, profiles: List<Profile>, active: Profile?,
+    onConnect: (Profile) -> Unit, onSelect: (Profile) -> Unit,
+) {
+    val rc = LocalRadioColors.current
+    var menu by remember { mutableStateOf(false) }
+    Row(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.app_name), style = MaterialTheme.typography.labelLarge, color = rc.star)
+            if (active != null) Box {
+                Row(
+                    Modifier.clip(RoundedCornerShape(8.dp))
+                        .clickable(enabled = profiles.size > 1 && state.conn == Conn.DISCONNECTED) { menu = true },
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(active.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (profiles.size > 1 && state.conn == Conn.DISCONNECTED) Icon(Icons.Default.ExpandMore, null)
+                }
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    profiles.forEach { p ->
+                        DropdownMenuItem(text = { Text("${p.title} · ${p.node}") }, onClick = { menu = false; onSelect(p) })
+                    }
+                }
+            }
+        }
+        if (active != null) {
+            val up = state.conn != Conn.DISCONNECTED
+            Button(
+                onClick = { if (up) Radio.disconnect() else onConnect(active) },
+                colors = if (up) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurface) else ButtonDefaults.buttonColors(),
+                contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
+            ) {
+                Icon(Icons.Default.PowerSettingsNew, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp))
+                Text(stringResource(if (up) R.string.disconnect else R.string.connect))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatusCard(state: RadioState) {
+    val rc = LocalRadioColors.current
+    val (label, color) = when {
+        state.conn == Conn.DISCONNECTED -> stringResource(R.string.status_disconnected) to rc.muted
+        state.conn == Conn.CONNECTING -> stringResource(R.string.status_connecting) to rc.star
+        state.tx -> stringResource(R.string.status_tx) to rc.tx
+        state.rx -> stringResource(R.string.status_rx) to rc.rx
+        else -> stringResource(R.string.status_connected) to rc.idle
+    }
+    val border by animateColorAsState(if (state.rx || state.tx) color.copy(alpha = 0.6f) else MaterialTheme.colorScheme.outlineVariant, label = "b")
+    var now by remember { mutableLongStateOf(android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(state.tx) { while (state.tx) { now = android.os.SystemClock.elapsedRealtime(); delay(200) } }
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = rc.card),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth().border(1.dp, border, RoundedCornerShape(20.dp)),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Pill(label, color)
+                Spacer(Modifier.weight(1f))
+                if (state.tx) {
+                    val secs = ((now - state.txStartedAt) / 1000).coerceAtLeast(0)
+                    Text("%d:%02d".format(secs / 60, secs % 60), fontFamily = FontFamily.Monospace,
+                        color = rc.tx, fontWeight = FontWeight.Bold)
+                } else if (state.profile != null) {
+                    Text(stringResource(R.string.my_node, state.profile.node), style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            if (state.reason != null && state.conn == Conn.DISCONNECTED) {
+                Text(state.reason, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Hearing, null, Modifier.size(16.dp), tint = rc.muted); Spacer(Modifier.width(8.dp))
+                LevelMeter(if (state.conn == Conn.CONNECTED) state.rxLevel else -90f, rc.rx)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Mic, null, Modifier.size(16.dp), tint = rc.muted); Spacer(Modifier.width(8.dp))
+                LevelMeter(if (state.tx) state.txLevel else -90f, rc.tx)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LinkedRow(l: LinkedNode, canControl: Boolean, onOpen: (String) -> Unit) {
+    val info = Radio.directory.lookup(l.number)
+    Card(
+        onClick = { onOpen(l.number) },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            NodeBadge(l.number)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                NodeTitle(info, l.number)
+                val sub = listOf(info?.description, info?.location).filter { !it.isNullOrBlank() }.joinToString(" · ")
+                val mode = when (l.mode) {
+                    'R' -> stringResource(R.string.mode_r); 'C' -> stringResource(R.string.mode_c)
+                    else -> stringResource(R.string.mode_t)
+                }
+                Text(listOf(mode, sub).filter { it.isNotBlank() }.joinToString(" · "), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+            if (canControl) IconButton(onClick = { Radio.unlinkNode(l.number) }) {
+                Icon(Icons.Default.Close, stringResource(R.string.unlink), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventRow(e: LogEvent) {
+    val rc = LocalRadioColors.current
+    val c = when (e.kind) {
+        LogEvent.Kind.RX -> rc.rx; LogEvent.Kind.TX -> rc.tx; LogEvent.Kind.CMD -> rc.star
+        LogEvent.Kind.ERROR -> MaterialTheme.colorScheme.error; else -> rc.idle
+    }
+    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(e.clock, fontFamily = FontFamily.Monospace, fontSize = 12.sp, color = rc.muted)
+        Spacer(Modifier.width(10.dp)); StatusDot(c, Modifier.size(6.dp)); Spacer(Modifier.width(10.dp))
+        Text(e.text, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+private fun PttButton(state: RadioState, mode: PttMode) {
+    val rc = LocalRadioColors.current
+    val haptic = LocalHapticFeedback.current
+    val enabled = state.conn == Conn.CONNECTED
+    val base = when {
+        !enabled -> MaterialTheme.colorScheme.surfaceContainerHighest
+        state.tx -> rc.tx
+        state.rx -> rc.rx
+        else -> MaterialTheme.colorScheme.primary
+    }
+    val color by animateColorAsState(base, label = "ptt")
+    val pulse = rememberInfiniteTransition(label = "pulse")
+    val ring by pulse.animateFloat(1f, 1.12f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "ring")
+
+    val hint = when {
+        !enabled -> stringResource(R.string.connect_first)
+        state.tx -> stringResource(if (mode == PttMode.HOLD) R.string.release_to_listen else R.string.tap_to_stop)
+        else -> stringResource(if (mode == PttMode.HOLD) R.string.hold_to_talk else R.string.tap_to_talk)
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(Modifier.size(176.dp), contentAlignment = Alignment.Center) {
+            if (state.tx || state.rx) Box(
+                Modifier.size(160.dp).scale(ring).clip(CircleShape).background(color.copy(alpha = 0.18f))
+            )
+            Box(
+                Modifier.size(150.dp).clip(CircleShape)
+                    .background(Brush.radialGradient(listOf(color.copy(alpha = 0.95f), color.copy(alpha = 0.75f))))
+                    .border(2.dp, Color.White.copy(alpha = if (enabled) 0.18f else 0.05f), CircleShape)
+                    .pointerInput(enabled, mode) {
+                        if (!enabled) return@pointerInput
+                        awaitEachGesture {
+                            awaitFirstDown()
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            if (mode == PttMode.HOLD) {
+                                Radio.pttDown()
+                                waitForUpOrCancellation()
+                                Radio.pttUp()
+                            } else {
+                                waitForUpOrCancellation()
+                                Radio.togglePtt()
+                            }
+                        }
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.Mic, null, Modifier.size(46.dp),
+                        tint = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("PTT", color = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.Black, letterSpacing = 3.sp)
+                }
+            }
+        }
+        Text(hint, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun Welcome(onAdd: () -> Unit) {
+    val rc = LocalRadioColors.current
+    Card(
+        colors = CardDefaults.cardColors(containerColor = rc.card), shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(stringResource(R.string.welcome_title), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.welcome_text), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = onAdd) { Text(stringResource(R.string.add_node)) }
+        }
+    }
+}
+
+@Composable
+private fun Keypad(onSend: (String) -> Unit) {
+    var digits by remember { mutableStateOf("") }
+    val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#")
+    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(digits.ifEmpty { "—" }, fontFamily = FontFamily.Monospace, fontSize = 30.sp, fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
+            IconButton(onClick = { digits = digits.dropLast(1) }, enabled = digits.isNotEmpty()) {
+                Icon(Icons.Default.Backspace, null)
+            }
+        }
+        keys.chunked(3).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                row.forEach { k ->
+                    FilledTonalButton(onClick = { digits += k }, modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp)) {
+                        Text(k, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            listOf("*70", "*76", "*80").forEach { macro ->
+                OutlinedButton(onClick = { digits = macro }, modifier = Modifier.weight(1f)) { Text(macro, fontFamily = FontFamily.Monospace) }
+            }
+        }
+        Button(onClick = { onSend(digits) }, enabled = digits.isNotEmpty(), modifier = Modifier.fillMaxWidth().height(52.dp)) {
+            Text(stringResource(R.string.send))
+        }
+    }
+}

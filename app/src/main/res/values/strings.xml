@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AllStar Mobile</string>
+    <string name="tab_radio">Radio</string>
+    <string name="tab_nodes">Nodes</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="send">Send</string>
+
+    <string name="status_disconnected">Offline</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_connected">Listening</string>
+    <string name="status_rx">Receiving</string>
+    <string name="status_tx">Transmitting</string>
+
+    <string name="my_node">My node %1$s</string>
+    <string name="linked_nodes">Linked nodes</string>
+    <string name="no_links">Your node is not linked to any other node. Find one in Nodes.</string>
+    <string name="unlink_all">Unlink all</string>
+    <string name="hold_to_talk">Hold to talk</string>
+    <string name="tap_to_talk">Tap to talk</string>
+    <string name="release_to_listen">Release to listen</string>
+    <string name="tap_to_stop">Tap to stop</string>
+    <string name="keypad">Keypad</string>
+    <string name="activity">Activity</string>
+    <string name="mode_t">Transceive</string>
+    <string name="mode_r">Monitor</string>
+    <string name="mode_c">Connecting</string>
+
+    <string name="welcome_title">Welcome to AllStar Mobile</string>
+    <string name="welcome_text">AllStar Mobile connects to your own AllStarLink node over IAX, like iaxRpt. From there you can link to any node in the network and talk.\n\nAdd your node in Settings to start.</string>
+    <string name="add_node">Add my node</string>
+    <string name="mic_needed">Microphone permission is needed to transmit.</string>
+
+    <string name="search_hint">Number, callsign or place</string>
+    <string name="favorites">Favorites</string>
+    <string name="recents">Recent</string>
+    <string name="results">Results</string>
+    <string name="nodes_count">%1$s nodes</string>
+    <string name="updated_ago">updated %1$s</string>
+    <string name="loading_nodes">Downloading node list…</string>
+    <string name="no_favorites">Tap the star on a node to keep it here.</string>
+    <string name="no_recents">Nodes you link to will appear here.</string>
+    <string name="no_results">No nodes found.</string>
+    <string name="refresh">Refresh</string>
+
+    <string name="link_tx">Link</string>
+    <string name="link_monitor">Monitor only</string>
+    <string name="unlink">Unlink</string>
+    <string name="online">Online</string>
+    <string name="offline">No recent stats</string>
+    <string name="keyed_now">On air now</string>
+    <string name="connect_first">Connect to your node first</string>
+    <string name="details_loading">Loading live status…</string>
+    <string name="frequency">Frequency</string>
+    <string name="location">Location</string>
+
+    <string name="profiles">My nodes</string>
+    <string name="add_profile">Add node</string>
+    <string name="edit_profile">Edit node</string>
+    <string name="f_name">Name (optional)</string>
+    <string name="f_host">Server (host or IP)</string>
+    <string name="f_port">IAX port</string>
+    <string name="f_user">IAX user</string>
+    <string name="f_secret">IAX password</string>
+    <string name="f_node">Node number</string>
+    <string name="f_callsign">Callsign</string>
+    <string name="active">Active</string>
+    <string name="ptt">Push to talk</string>
+    <string name="ptt_hold">Hold</string>
+    <string name="ptt_toggle">Toggle</string>
+    <string name="volume_ptt">Volume-down key is PTT</string>
+    <string name="volume_ptt_sub">While the app is on screen</string>
+    <string name="mic_gain">Microphone gain</string>
+    <string name="tx_timeout">Transmit time-out</string>
+    <string name="keep_screen">Keep screen on</string>
+    <string name="setup_help_title">Node setup</string>
+    <string name="setup_help">Add an IAX user to your node (iax.conf) and a dialplan context that answers with rpt(node|X), just like for iaxRpt:</string>
+    <string name="about">About</string>
+    <string name="about_text">Free software (GPL-3.0). Not affiliated with AllStarLink, Inc. Node list and statistics from allstarlink.org.</string>
+    <string name="external_ptt">External PTT: apps and buttons can send android.intent.action.PTT.down / PTT.up.</string>
+
+    <string name="notif_channel">Node connection</string>
+    <string name="notif_title">AllStar node %1$s</string>
+
+    <string name="ev_connecting">Connecting to node %1$s (%2$s)…</string>
+    <string name="ev_connected">Connected to node %1$s</string>
+    <string name="ev_disconnected">Disconnected</string>
+    <string name="ev_failed">Connection failed: %1$s</string>
+    <string name="ev_rx">Receiving audio</string>
+    <string name="ev_tx">Transmitted %1$.1f s</string>
+    <string name="ev_tot">Transmit time-out reached</string>
+    <string name="ev_dtmf">DTMF %1$s</string>
+    <string name="ev_link">Linking %1$s</string>
+    <string name="ev_monitor">Monitoring %1$s</string>
+    <string name="ev_unlink">Unlinking %1$s</string>
+    <string name="ev_unlink_all">Unlinking all nodes</string>
+    <string name="ev_linked">%1$s linked</string>
+    <string name="ev_unlinked">%1$s unlinked</string>
+    <plurals name="links_n">
+        <item quantity="one">%1$d link</item>
+        <item quantity="other">%1$d links</item>
+    </plurals>
+</resources>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_radio">Radio</string>
+    <string name="tab_nodes">Nodos</string>
+    <string name="tab_settings">Ajustes</string>
+
+    <string name="connect">Conectar</string>
+    <string name="disconnect">Desconectar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Borrar</string>
+    <string name="close">Cerrar</string>
+    <string name="send">Enviar</string>
+
+    <string name="status_disconnected">Sin conexión</string>
+    <string name="status_connecting">Conectando…</string>
+    <string name="status_connected">Escuchando</string>
+    <string name="status_rx">Recibiendo</string>
+    <string name="status_tx">Transmitiendo</string>
+
+    <string name="my_node">Mi nodo %1$s</string>
+    <string name="linked_nodes">Nodos enlazados</string>
+    <string name="no_links">Tu nodo no está enlazado a ningún otro. Busca uno en Nodos.</string>
+    <string name="unlink_all">Desenlazar todos</string>
+    <string name="hold_to_talk">Mantén para hablar</string>
+    <string name="tap_to_talk">Toca para hablar</string>
+    <string name="release_to_listen">Suelta para escuchar</string>
+    <string name="tap_to_stop">Toca para terminar</string>
+    <string name="keypad">Teclado</string>
+    <string name="activity">Actividad</string>
+    <string name="mode_t">Transceptor</string>
+    <string name="mode_r">Solo escucha</string>
+    <string name="mode_c">Conectando</string>
+
+    <string name="welcome_title">Bienvenido a AllStar Mobile</string>
+    <string name="welcome_text">AllStar Mobile se conecta a tu propio nodo AllStarLink por IAX, como iaxRpt. Desde ahí puedes enlazar con cualquier nodo de la red y hablar.\n\nAñade tu nodo en Ajustes para empezar.</string>
+    <string name="add_node">Añadir mi nodo</string>
+    <string name="mic_needed">Hace falta el permiso de micrófono para transmitir.</string>
+
+    <string name="search_hint">Número, indicativo o lugar</string>
+    <string name="favorites">Favoritos</string>
+    <string name="recents">Recientes</string>
+    <string name="results">Resultados</string>
+    <string name="nodes_count">%1$s nodos</string>
+    <string name="updated_ago">actualizada %1$s</string>
+    <string name="loading_nodes">Descargando la lista de nodos…</string>
+    <string name="no_favorites">Toca la estrella de un nodo para tenerlo aquí.</string>
+    <string name="no_recents">Aquí aparecerán los nodos con los que enlaces.</string>
+    <string name="no_results">No se encontraron nodos.</string>
+    <string name="refresh">Actualizar</string>
+
+    <string name="link_tx">Enlazar</string>
+    <string name="link_monitor">Solo escuchar</string>
+    <string name="unlink">Desenlazar</string>
+    <string name="online">En línea</string>
+    <string name="offline">Sin estadísticas recientes</string>
+    <string name="keyed_now">En el aire ahora</string>
+    <string name="connect_first">Conéctate primero a tu nodo</string>
+    <string name="details_loading">Cargando estado en vivo…</string>
+    <string name="frequency">Frecuencia</string>
+    <string name="location">Ubicación</string>
+
+    <string name="profiles">Mis nodos</string>
+    <string name="add_profile">Añadir nodo</string>
+    <string name="edit_profile">Editar nodo</string>
+    <string name="f_name">Nombre (opcional)</string>
+    <string name="f_host">Servidor (dominio o IP)</string>
+    <string name="f_port">Puerto IAX</string>
+    <string name="f_user">Usuario IAX</string>
+    <string name="f_secret">Contraseña IAX</string>
+    <string name="f_node">Número de nodo</string>
+    <string name="f_callsign">Indicativo</string>
+    <string name="active">Activo</string>
+    <string name="ptt">Pulsar para hablar</string>
+    <string name="ptt_hold">Mantener</string>
+    <string name="ptt_toggle">Conmutar</string>
+    <string name="volume_ptt">Tecla de bajar volumen como PTT</string>
+    <string name="volume_ptt_sub">Mientras la app está en pantalla</string>
+    <string name="mic_gain">Ganancia del micrófono</string>
+    <string name="tx_timeout">Tiempo máximo de transmisión</string>
+    <string name="keep_screen">Mantener la pantalla encendida</string>
+    <string name="setup_help_title">Configurar el nodo</string>
+    <string name="setup_help">Añade un usuario IAX a tu nodo (iax.conf) y un contexto del plan de marcado que responda con rpt(nodo|X), igual que para iaxRpt:</string>
+    <string name="about">Acerca de</string>
+    <string name="about_text">Software libre (GPL-3.0). Sin relación con AllStarLink, Inc. Lista de nodos y estadísticas de allstarlink.org.</string>
+    <string name="external_ptt">PTT externo: otras apps y botones pueden enviar android.intent.action.PTT.down / PTT.up.</string>
+
+    <string name="notif_channel">Conexión con el nodo</string>
+    <string name="notif_title">Nodo AllStar %1$s</string>
+
+    <string name="ev_connecting">Conectando al nodo %1$s (%2$s)…</string>
+    <string name="ev_connected">Conectado al nodo %1$s</string>
+    <string name="ev_disconnected">Desconectado</string>
+    <string name="ev_failed">Fallo de conexión: %1$s</string>
+    <string name="ev_rx">Recibiendo audio</string>
+    <string name="ev_tx">Transmitido %1$.1f s</string>
+    <string name="ev_tot">Alcanzado el tiempo máximo de transmisión</string>
+    <string name="ev_dtmf">DTMF %1$s</string>
+    <string name="ev_link">Enlazando %1$s</string>
+    <string name="ev_monitor">Escuchando %1$s</string>
+    <string name="ev_unlink">Desenlazando %1$s</string>
+    <string name="ev_unlink_all">Desenlazando todos los nodos</string>
+    <string name="ev_linked">%1$s enlazado</string>
+    <string name="ev_unlinked">%1$s desenlazado</string>
+    <plurals name="links_n">
+        <item quantity="one">%1$d enlace</item>
+        <item quantity="other">%1$d enlaces</item>
+    </plurals>
+</resources>
