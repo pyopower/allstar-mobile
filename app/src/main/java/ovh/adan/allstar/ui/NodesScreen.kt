@@ -273,7 +273,8 @@ private fun NodeRow(number: String, info: NodeInfo?, status: Status, fav: Boolea
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite: () -> Unit, onDismiss: () -> Unit) {
+fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite: () -> Unit, onDismiss: () -> Unit,
+              onLinkRequested: () -> Unit = onDismiss) {
     val rc = LocalRadioColors.current
     val info = Radio.directory.lookup(number)
     var details by remember { mutableStateOf<NodeDetails?>(null) }
@@ -346,10 +347,10 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
                         Icon(Icons.Default.LinkOff, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.unlink))
                     }
                 } else {
-                    Button(onClick = { Radio.linkNode(number); onDismiss() }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                    Button(onClick = { Radio.linkNode(number); onLinkRequested() }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
                         Icon(Icons.Default.Link, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.link_tx))
                     }
-                    OutlinedButton(onClick = { Radio.linkNode(number, monitorOnly = true); onDismiss() },
+                    OutlinedButton(onClick = { Radio.linkNode(number, monitorOnly = true); onLinkRequested() },
                         modifier = Modifier.fillMaxWidth().height(52.dp)) {
                         Icon(Icons.Default.Hearing, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.link_monitor))
                     }

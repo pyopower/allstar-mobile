@@ -30,6 +30,8 @@ class LinkService : Service() {
     private var wifi: WifiManager.WifiLock? = null
     private val scope = CoroutineScope(Dispatchers.Main)
     private var watch: Job? = null
+    /** Started by BOOT_COMPLETED: Android never lets such a service gain the microphone type. */
+    private var fromBoot = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -38,13 +40,12 @@ class LinkService : Service() {
             Radio.disconnect()
             return START_NOT_STICKY
         }
+        instance = this
+        if (intent?.action == ACTION_BOOT) fromBoot = true
         createChannel()
-        val micOk = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-        val types = if (Build.VERSION.SDK_INT >= 30) {
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or (if (micOk) ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0)
-        } else 0
-        ServiceCompat.startForeground(this, NOTIF_ID, buildNotification(Radio.state.value), types)
+        enterForeground()
         acquireLocks()
+        if (intent?.action == ACTION_BOOT) bootConnect()
         if (watch == null) watch = scope.launch {
             Radio.state.map { Triple(it.conn, it.rx, it.tx) }.distinctUntilChanged().collect {
                 getSystemService(NotificationManager::class.java).notify(NOTIF_ID, buildNotification(Radio.state.value))
@@ -53,7 +54,40 @@ class LinkService : Service() {
         return START_NOT_STICKY
     }
 
+    /**
+     * Android 14+ forbids microphone/media foreground services started from the background
+     * (phone boot), so those start as "specialUse" (listen only) and gain the microphone type
+     * the next time the app is on screen.
+     */
+    fun enterForeground() {
+        val micOk = ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+        val types = when {
+            Build.VERSION.SDK_INT >= 34 && !Radio.uiVisible -> ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            Build.VERSION.SDK_INT >= 30 ->
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or (if (micOk) ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE else 0)
+            else -> 0
+        }
+        runCatching { ServiceCompat.startForeground(this, NOTIF_ID, buildNotification(Radio.state.value), types) }
+            .onFailure { android.util.Log.w("LinkService", "startForeground types=$types failed", it); if (types != 0 && Build.VERSION.SDK_INT >= 34)
+                ServiceCompat.startForeground(this, NOTIF_ID, buildNotification(Radio.state.value), ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE) }
+    }
+
+    /** After boot: wait for a working network, then connect to the last used node. */
+    private fun bootConnect() {
+        val p = Radio.prefs.activeProfile ?: return stopSelf()
+        scope.launch {
+            val cm = getSystemService(android.net.ConnectivityManager::class.java)
+            repeat(90) {
+                val caps = cm.getNetworkCapabilities(cm.activeNetwork)
+                if (caps?.hasCapability(android.net.NetworkCapabilities.NET_CAPABILITY_VALIDATED) == true) return@repeat
+                kotlinx.coroutines.delay(2000)
+            }
+            Radio.autoConnect(p)
+        }
+    }
+
     override fun onDestroy() {
+        if (instance === this) instance = null
         watch?.cancel()
         runCatching { wake?.release() }
         runCatching { wifi?.release() }
@@ -106,8 +140,28 @@ class LinkService : Service() {
         private const val CHANNEL = "link"
         private const val NOTIF_ID = 1
         private const val ACTION_DISCONNECT = "ovh.adan.allstar.DISCONNECT"
+        const val ACTION_BOOT = "ovh.adan.allstar.BOOT"
+        @Volatile private var instance: LinkService? = null
 
-        fun start(ctx: Context) = ContextCompat.startForegroundService(ctx, Intent(ctx, LinkService::class.java))
+        /** Start the service, or just refresh its foreground types if it is already running. */
+        fun start(ctx: Context) {
+            instance?.let { s ->
+                if (s.fromBoot && Radio.uiVisible && Build.VERSION.SDK_INT >= 34) {
+                    // re-create it from the visible app so it may use the microphone; the IAX
+                    // connection lives in Radio and is not affected
+                    ctx.stopService(Intent(ctx, LinkService::class.java))
+                    android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        if (Radio.state.value.conn != Conn.DISCONNECTED && instance == null)
+                            ContextCompat.startForegroundService(ctx, Intent(ctx, LinkService::class.java))
+                    }, 400)
+                } else s.enterForeground()
+                return
+            }
+            ContextCompat.startForegroundService(ctx, Intent(ctx, LinkService::class.java))
+        }
+
+        fun startOnBoot(ctx: Context) =
+            ContextCompat.startForegroundService(ctx, Intent(ctx, LinkService::class.java).setAction(ACTION_BOOT))
         fun stop(ctx: Context) { ctx.stopService(Intent(ctx, LinkService::class.java)) }
     }
 }

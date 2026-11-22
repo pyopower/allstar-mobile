@@ -123,6 +123,12 @@ fun SettingsScreen(
                     prefs.volumeKeyPtt = it; onSettingsChanged()
                 }
                 ToggleRow(stringResource(R.string.keep_screen), null, prefs.keepScreenOn) { prefs.keepScreenOn = it; onSettingsChanged() }
+                ToggleRow(stringResource(R.string.auto_connect), stringResource(R.string.auto_connect_sub), prefs.autoConnect) {
+                    prefs.autoConnect = it; onSettingsChanged()
+                }
+                ToggleRow(stringResource(R.string.start_on_boot), stringResource(R.string.start_on_boot_sub), prefs.startOnBoot) {
+                    prefs.startOnBoot = it; onSettingsChanged()
+                }
                 HorizontalDivider()
                 var gain by remember { mutableFloatStateOf(prefs.micGain) }
                 Text("${stringResource(R.string.mic_gain)}: ${"%.1f".format(gain)}×", style = MaterialTheme.typography.bodyMedium)

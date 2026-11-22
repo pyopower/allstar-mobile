@@ -144,4 +144,8 @@
     <string name="nodes_online">%1$s online</string>
     <string name="online_only">Online</string>
     <string name="search_hint_el">Callsign, conference, place or EchoLink number</string>
+    <string name="auto_connect">Connect when the app opens</string>
+    <string name="auto_connect_sub">Connects to the last used node automatically</string>
+    <string name="start_on_boot">Start when the phone is switched on</string>
+    <string name="start_on_boot_sub">Connects to the last node in the background. On Android 14 and later, open the app once to enable the microphone</string>
 </resources>

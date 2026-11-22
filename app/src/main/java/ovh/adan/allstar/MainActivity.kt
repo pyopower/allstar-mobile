@@ -67,6 +67,25 @@ class MainActivity : ComponentActivity() {
         }
         handleLink(intent)
         setContent { AllStarTheme { App() } }
+        if (savedInstanceState == null && Radio.prefs.autoConnect && Radio.state.value.conn == Conn.DISCONNECTED) {
+            Radio.prefs.activeProfile?.takeIf { it.isComplete }?.let { p ->
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
+                    Radio.autoConnect(p)
+                else connect(p)
+            }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        Radio.uiVisible = true
+        // started at boot as listen-only: now that the app is visible, add the microphone
+        if (Radio.state.value.conn != Conn.DISCONNECTED) LinkService.start(this)
+    }
+
+    override fun onStop() {
+        Radio.uiVisible = false
+        super.onStop()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -170,7 +189,8 @@ class MainActivity : ComponentActivity() {
         }
 
         openNode?.let { n ->
-            NodeSheet(n, state, n in favorites, onToggleFavorite = { toggleFav(n) }, onDismiss = { openNode = null })
+            NodeSheet(n, state, n in favorites, onToggleFavorite = { toggleFav(n) }, onDismiss = { openNode = null },
+                onLinkRequested = { openNode = null; tab = 0 })
         }
     }
 }

@@ -73,6 +73,14 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("txTimeout", 180)
         set(v) { sp.edit().putInt("txTimeout", v).apply() }
 
+    var autoConnect: Boolean
+        get() = sp.getBoolean("autoConnect", false)
+        set(v) { sp.edit().putBoolean("autoConnect", v).apply() }
+
+    var startOnBoot: Boolean
+        get() = sp.getBoolean("startOnBoot", false)
+        set(v) { sp.edit().putBoolean("startOnBoot", v).apply() }
+
     var keepScreenOn: Boolean
         get() = sp.getBoolean("keepScreenOn", false)
         set(v) { sp.edit().putBoolean("keepScreenOn", v).apply() }

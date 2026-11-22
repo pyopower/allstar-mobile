@@ -64,6 +64,18 @@ object Radio {
     private var pollJob: Job? = null
     private var txGuardJob: Job? = null
     @Volatile private var remoteKeySeen = false
+    /** MainActivity is on screen (lets the service add the microphone type on Android 14+). */
+    @Volatile var uiVisible = false
+    /** Automatic (re)connection attempts left after a failure: used by auto-connect and start-on-boot. */
+    @Volatile private var retriesLeft = 0
+    private var retryJob: Job? = null
+
+    /** Connect without user interaction (app start / phone boot), retrying a few times if the network is not ready. */
+    fun autoConnect(profile: Profile) {
+        if (_state.value.conn != Conn.DISCONNECTED || !profile.isComplete) return
+        retriesLeft = 4
+        connect(profile, auto = true)
+    }
     @Volatile private var lastLoudRx = 0L
     @Volatile private var loudRun = 0
 
@@ -77,7 +89,8 @@ object Radio {
 
     // ----------------------------------------------------------------- call control
 
-    fun connect(profile: Profile) {
+    fun connect(profile: Profile, auto: Boolean = false) {
+        if (!auto) { retriesLeft = 0; retryJob?.cancel() }
         if (_state.value.conn != Conn.DISCONNECTED) disconnect()
         prefs.activeProfileId = profile.id
         remoteKeySeen = false
@@ -119,6 +132,7 @@ object Radio {
     }
 
     fun disconnect() {
+        retriesLeft = 0; retryJob?.cancel()
         pttUp()
         pollJob?.cancel(); pollJob = null
         client?.hangup(); client = null
@@ -131,6 +145,7 @@ object Radio {
     private fun onIaxState(s: IaxClient.State, reason: String?) {
         when (s) {
             IaxClient.State.CONNECTED -> {
+                retriesLeft = 0
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
                 log(app.getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
@@ -147,7 +162,12 @@ object Radio {
                     else log(app.getString(R.string.ev_disconnected))
                 }
                 _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList()) }
-                LinkService.stop(app)
+                val p = _state.value.profile
+                if (reason != null && retriesLeft > 0 && p != null) {
+                    // keep the foreground service: it cannot be restarted from the background
+                    retriesLeft--
+                    retryJob = scope.launch { delay(20_000); if (_state.value.conn == Conn.DISCONNECTED) connect(p, auto = true) }
+                } else LinkService.stop(app)
             }
             else -> {}
         }
