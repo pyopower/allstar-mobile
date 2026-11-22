@@ -26,7 +26,7 @@ Hand-off for publishing. Everything below is ready except what is marked **TODO*
 - Titles / short / full descriptions: `metadata/android/{en-US,es-ES,pt-PT,it-IT,fr-FR,de-DE}`
 - Icon 512×512, feature graphic 1024×500, 5 phone screenshots per language (es-ES in Spanish, the rest in English).
 - Category: **Communication**. Tags: amateur radio, AllStarLink, EchoLink.
-- **TODO** contact e-mail (and optional website: the GitHub repo once it is public).
+- Contact e-mail: **adan@garrido.it**. Website: https://github.com/pyopower/allstar-mobile
 - Privacy policy: **https://descargas.adan.ovh/mobile-asl-privacy.html** (source: `fastlane/privacy-policy.html`).
 
 ## App content
@@ -42,8 +42,10 @@ Hand-off for publishing. Everything below is ready except what is marked **TODO*
   - Nothing else is collected (no account, no analytics, no crash reporting, no location).
   - Encrypted in transit: **No** (IAX2 is not encrypted).
   - Users cannot request deletion because nothing is stored by the developer.
-- **App access** (**TODO**, decide): connecting needs the user's own AllStarLink node. The node list, live status,
-  EchoLink list and settings work without any login. Either explain that, or give reviewers a demo IAX login.
+- **App access**: *All or some functionality is restricted* → instructions only, no demo login (decided):
+  "Connecting requires the user's own AllStarLink node (amateur radio licence). Without it you can still use the
+  Nodes tab (AllStarLink node list with online status, EchoLink repeaters/links/conferences on the air), the node
+  details and all Settings. Node owners create a login with the one-command setup shown in Settings."
 - **Foreground service declarations** (Android 14+), with a short video for each (**TODO** record):
   - `microphone`: "Push-to-talk voice to the user's AllStarLink node keeps working when the app is in the
     background or the screen is off (hardware/Bluetooth PTT buttons)."
@@ -58,6 +60,5 @@ Hand-off for publishing. Everything below is ready except what is marked **TODO*
 
 ## Before publishing
 
-- **TODO** make the GitHub repo public: the one-command node setup shown in the app downloads
-  `tools/setup-node.sh` from `raw.githubusercontent.com`, which fails while the repo is private.
+- GitHub repo made **public** on 22-nov-2026 (the in-app setup command downloads `tools/setup-node.sh` from it).
 - The developer account is old (same as ADN-SYSTEMS LIVE): no mandatory 14-day closed test, production is allowed.
