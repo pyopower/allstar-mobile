@@ -26,7 +26,7 @@
     <string name="tap_to_talk">Toca para hablar</string>
     <string name="release_to_listen">Suelta para escuchar</string>
     <string name="tap_to_stop">Toca para terminar</string>
-    <string name="keypad">Teclado</string>
+    <string name="keypad">Teclado DTMF</string>
     <string name="activity">Actividad</string>
     <string name="mode_t">Transceptor</string>
     <string name="mode_r">Solo escucha</string>
@@ -37,7 +37,7 @@
     <string name="add_node">Añadir mi nodo</string>
     <string name="mic_needed">Hace falta el permiso de micrófono para transmitir.</string>
 
-    <string name="search_hint">Número, indicativo o lugar</string>
+    <string name="search_hint">Número, indicativo, lugar o EL 123456</string>
     <string name="favorites">Favoritos</string>
     <string name="recents">Recientes</string>
     <string name="results">Resultados</string>
@@ -115,4 +115,15 @@
     <string name="manual_setup">Configuración manual</string>
     <string name="import_title">¿Añadir este nodo?</string>
     <string name="import_add">Añadir</string>
+    <string name="quick_commands">Comandos rápidos</string>
+    <string name="cmd_link">+ número de nodo: enlazar (hablar y escuchar)</string>
+    <string name="cmd_monitor">+ número de nodo: solo escuchar</string>
+    <string name="cmd_unlink">+ número de nodo: desenlazar ese nodo</string>
+    <string name="cmd_status">Estado: el nodo dice en voz alta sus enlaces</string>
+    <string name="cmd_time">El nodo dice la hora</string>
+    <string name="cmd_id">El nodo se identifica (indicativo)</string>
+    <string name="quick_commands_note">Toca un comando para ponerlo en pantalla, añade el número de nodo si hace falta y pulsa Enviar. Son los códigos estándar de ASL3; tu nodo puede tener otros. Los nodos EchoLink son 3 + su número (EL 677857 → 3677857).</string>
+    <string name="echolink_node">Nodo EchoLink · se enlaza a través de tu nodo</string>
+    <string name="not_in_list">No está en la lista pública · se puede enlazar igual</string>
+    <string name="echolink_hint">Nodo EchoLink. Tu nodo se enlaza a él con su propio módulo EchoLink, así que tu nodo debe tener EchoLink activado.</string>
 </resources>

@@ -93,7 +93,7 @@ fun NodeBadge(number: String, highlight: Boolean = false, modifier: Modifier = M
 
 @Composable
 fun NodeTitle(info: NodeInfo?, number: String) {
-    val name = info?.callsign?.takeIf { it.isNotBlank() } ?: number
+    val name = info?.callsign?.takeIf { it.isNotBlank() } ?: if (ovh.adan.allstar.data.isEchoLinkNumber(number)) "EchoLink" else number
     Text(name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold, maxLines = 1)
 }
 

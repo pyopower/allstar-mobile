@@ -24,7 +24,8 @@ phone ──IAX2 (ulaw)──▶ your node ──AllStar links──▶ any node
 - Receive indicator and level meters (RX / TX), jitter buffer
 - Search the full public node list (≈42,000 nodes) by number, callsign, description or location
 - Live node status from stats.allstarlink.org: online, on air, links
-- Link (`*3`), monitor-only (`*2`), unlink (`*1`), unlink all (`*76`), DTMF keypad
+- Link (`*3`), monitor-only (`*2`), unlink (`*1`), unlink all, DTMF keypad with explained ASL3 commands
+- EchoLink nodes: search `EL 123456` and link through your node's EchoLink module
 - Favorites and recent nodes, several "my node" profiles
 - Runs in the background with a foreground service (Wi-Fi + wake locks)
 - External PTT: volume-down key, and broadcast intents `android.intent.action.PTT.down` / `PTT.up`
@@ -99,7 +100,7 @@ busca en toda la red, enlaza con cualquier nodo y habla desde el móvil.
 - Cliente IAX2 propio en Kotlin (token de llamada, MD5, ulaw, retransmisión)
 - PTT mantenido o conmutado con el protocolo NEWKEY de app_rpt, tiempo máximo de TX
 - Buscador de los ≈42.000 nodos públicos por número, indicativo, descripción o lugar
-- Estado en vivo (stats.allstarlink.org), enlazar `*3`, solo escuchar `*2`, desenlazar `*1`, `*76`, teclado DTMF
+- Estado en vivo (stats.allstarlink.org), enlazar `*3`, solo escuchar `*2`, desenlazar `*1`, desenlazar todo, teclado DTMF con comandos explicados, nodos EchoLink (`EL 123456`)
 - Favoritos, recientes y varios perfiles de nodo
 - PTT externo: tecla de bajar volumen e intents `android.intent.action.PTT.down` / `PTT.up`
 

@@ -27,7 +27,7 @@
     <string name="tap_to_talk">Tap to talk</string>
     <string name="release_to_listen">Release to listen</string>
     <string name="tap_to_stop">Tap to stop</string>
-    <string name="keypad">Keypad</string>
+    <string name="keypad">DTMF keypad</string>
     <string name="activity">Activity</string>
     <string name="mode_t">Transceive</string>
     <string name="mode_r">Monitor</string>
@@ -38,7 +38,7 @@
     <string name="add_node">Add my node</string>
     <string name="mic_needed">Microphone permission is needed to transmit.</string>
 
-    <string name="search_hint">Number, callsign or place</string>
+    <string name="search_hint">Number, callsign, place or EL 123456</string>
     <string name="favorites">Favorites</string>
     <string name="recents">Recent</string>
     <string name="results">Results</string>
@@ -116,4 +116,15 @@
     <string name="manual_setup">Manual setup</string>
     <string name="import_title">Add this node?</string>
     <string name="import_add">Add</string>
+    <string name="quick_commands">Quick commands</string>
+    <string name="cmd_link">+ node number: link (talk and listen)</string>
+    <string name="cmd_monitor">+ node number: listen only</string>
+    <string name="cmd_unlink">+ node number: unlink that node</string>
+    <string name="cmd_status">Status: the node says its links out loud</string>
+    <string name="cmd_time">The node says the time</string>
+    <string name="cmd_id">The node sends its ID (callsign)</string>
+    <string name="quick_commands_note">Tap a command to put it on the display, add the node number if needed and press Send. These are the standard ASL3 codes; your node may have others. EchoLink nodes are 3 + their number (EL 677857 → 3677857).</string>
+    <string name="echolink_node">EchoLink node · linked through your node</string>
+    <string name="not_in_list">Not in the public list · you can still link it</string>
+    <string name="echolink_hint">EchoLink node. Your node links to it through its own EchoLink module, so EchoLink must be enabled on your node.</string>
 </resources>

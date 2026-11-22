@@ -9,6 +9,9 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 
+/** AllStar numbers EchoLink nodes as 3 + the 6-digit EchoLink node number. */
+fun isEchoLinkNumber(n: String) = n.length == 7 && n.startsWith("3") && n.all { it.isDigit() }
+
 data class NodeInfo(val number: String, val callsign: String, val description: String, val location: String) {
     val isEchoLink get() = number.length == 7 && number.startsWith("3")
     val displayNumber get() = if (isEchoLink) "EL ${number.drop(1)}" else number
@@ -50,6 +53,21 @@ class NodeDirectory(ctx: Context) {
         }
         byNumber = list.associateBy { it.number }
         _nodes.value = list
+    }
+
+    /**
+     * Numbers typed by the user that are not in the public list but can still be linked:
+     * "EL 677857" / "echolink 677857" -> 3677857, an unlisted AllStar number, or a 4-6 digit
+     * number that may be an EchoLink node. (The public list has no EchoLink entries.)
+     */
+    fun directCandidates(query: String): List<String> {
+        val t = query.trim().lowercase().replace(" ", "").replace("-", "")
+        Regex("^(el|echolink)(\\d{1,6})$").matchEntire(t)?.let { return listOf("3" + it.groupValues[2].padStart(6, '0')) }
+        if (t.isEmpty() || !t.all { it.isDigit() } || t.length !in 4..7) return emptyList()
+        val out = mutableListOf<String>()
+        if (byNumber[t] == null) out += t
+        if (t.length <= 6) out += "3" + t.padStart(6, '0')
+        return out.filter { byNumber[it] == null }
     }
 
     fun search(query: String, limit: Int = 300): List<NodeInfo> {

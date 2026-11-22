@@ -64,6 +64,7 @@ import ovh.adan.allstar.Radio
 import ovh.adan.allstar.RadioState
 import ovh.adan.allstar.data.NodeDetails
 import ovh.adan.allstar.data.NodeInfo
+import ovh.adan.allstar.data.isEchoLinkNumber
 import ovh.adan.allstar.data.NodeStats
 import java.text.NumberFormat
 
@@ -119,7 +120,7 @@ fun NodesScreen(state: RadioState, favorites: Set<String>, recents: List<String>
                 FilterChip(tab == Tab.RECENTS, { tab = Tab.RECENTS }, { Text(stringResource(R.string.recents)) })
             }
             list = if (tab == Tab.FAVORITES) favorites.sorted() else recents
-        } else list = results.map { it.number }
+        } else list = (Radio.directory.directCandidates(query) + results.map { it.number }).distinct()
 
         val linked = state.links.map { it.number }.toSet()
         if (list.isEmpty()) {
@@ -151,7 +152,9 @@ private fun NodeRow(number: String, info: NodeInfo?, fav: Boolean, linked: Boole
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 NodeTitle(info, number)
-                val sub = listOf(info?.description, info?.location).filter { !it.isNullOrBlank() }.joinToString(" · ")
+                val sub = if (info == null) stringResource(
+                    if (isEchoLinkNumber(number)) R.string.echolink_node else R.string.not_in_list)
+                    else listOf(info?.description, info?.location).filter { !it.isNullOrBlank() }.joinToString(" · ")
                 if (sub.isNotBlank()) Text(sub, style = MaterialTheme.typography.bodySmall, maxLines = 2,
                     overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -170,8 +173,9 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
     val info = Radio.directory.lookup(number)
     var details by remember { mutableStateOf<NodeDetails?>(null) }
     var loading by remember { mutableStateOf(true) }
+    val echoLink = isEchoLinkNumber(number)
     LaunchedEffect(number) {
-        details = NodeStats.fetch(number).getOrNull()
+        if (!echoLink) details = NodeStats.fetch(number).getOrNull()
         loading = false
     }
     val connected = state.conn == Conn.CONNECTED
@@ -184,7 +188,8 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
                 NodeBadge(number, highlight = isLinked)
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
-                    Text(info?.callsign?.ifBlank { null } ?: details?.callsign?.ifBlank { null } ?: number,
+                    Text(info?.callsign?.ifBlank { null } ?: details?.callsign?.ifBlank { null }
+                        ?: if (echoLink) "EchoLink ${number.drop(1)}" else number,
                         style = MaterialTheme.typography.titleLarge)
                     info?.description?.takeIf { it.isNotBlank() }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -198,7 +203,8 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
 
             Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh), shape = RoundedCornerShape(16.dp)) {
                 Column(Modifier.fillMaxWidth().padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (loading) Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (echoLink) Text(stringResource(R.string.echolink_hint), style = MaterialTheme.typography.bodyMedium)
+                    else if (loading) Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp); Spacer(Modifier.width(10.dp))
                         Text(stringResource(R.string.details_loading), style = MaterialTheme.typography.bodyMedium)
                     } else {

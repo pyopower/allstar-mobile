@@ -10,6 +10,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
@@ -52,6 +55,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -174,8 +178,9 @@ fun RadioScreen(
     }
 
     if (showKeypad) {
-        ModalBottomSheet(onDismissRequest = { showKeypad = false }) {
-            Keypad(onSend = { Radio.dtmf(it); showKeypad = false })
+        ModalBottomSheet(onDismissRequest = { showKeypad = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
+            Keypad(onSend = { Radio.dtmf(it); showKeypad = false }, onClose = { showKeypad = false })
         }
     }
 }
@@ -385,12 +390,22 @@ private fun Welcome(onAdd: () -> Unit) {
     }
 }
 
+/** Stock ASL3 rpt.conf [functions]; "+" means the node number follows. */
+private val QUICK_COMMANDS = listOf(
+    "*3" to R.string.cmd_link, "*2" to R.string.cmd_monitor, "*1" to R.string.cmd_unlink,
+    "*70" to R.string.cmd_status, "*722" to R.string.cmd_time, "*721" to R.string.cmd_id,
+)
+
 @Composable
-private fun Keypad(onSend: (String) -> Unit) {
+private fun Keypad(onSend: (String) -> Unit, onClose: () -> Unit) {
     var digits by remember { mutableStateOf("") }
     val keys = listOf("1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#")
-    Column(Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp),
+    Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 24.dp).padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.keypad), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
+            IconButton(onClick = onClose) { Icon(Icons.Default.Close, stringResource(R.string.close)) }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(digits.ifEmpty { "—" }, fontFamily = FontFamily.Monospace, fontSize = 30.sp, fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center, modifier = Modifier.weight(1f))
@@ -408,13 +423,25 @@ private fun Keypad(onSend: (String) -> Unit) {
                 }
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            listOf("*70", "*76", "*80").forEach { macro ->
-                OutlinedButton(onClick = { digits = macro }, modifier = Modifier.weight(1f)) { Text(macro, fontFamily = FontFamily.Monospace) }
-            }
-        }
         Button(onClick = { onSend(digits) }, enabled = digits.isNotEmpty(), modifier = Modifier.fillMaxWidth().height(52.dp)) {
             Text(stringResource(R.string.send))
         }
+
+        Text(stringResource(R.string.quick_commands).uppercase(), style = MaterialTheme.typography.labelMedium,
+            letterSpacing = 1.2.sp, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+        Card(shape = RoundedCornerShape(16.dp), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+            QUICK_COMMANDS.forEachIndexed { idx, (code, desc) ->
+                if (idx > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                Row(Modifier.fillMaxWidth().clickable { digits = code }.padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    Text(code, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold, fontSize = 17.sp,
+                        color = MaterialTheme.colorScheme.primary, modifier = Modifier.width(64.dp))
+                    Text(stringResource(desc), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
+        Text(stringResource(R.string.quick_commands_note), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.fillMaxWidth())
     }
 }

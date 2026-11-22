@@ -200,7 +200,25 @@ object Radio {
     }
 
     fun unlinkNode(n: String) = dtmf("*1$n", app.getString(R.string.ev_unlink, describe(n)))
-    fun unlinkAll() = dtmf("*76", app.getString(R.string.ev_unlink_all))
+    /**
+     * Stock ASL3 has no "disconnect all" DTMF code (*76 only exists on some older/custom configs),
+     * so unlink each known link with *1, one after another.
+     */
+    fun unlinkAll() {
+        val c = client ?: return
+        if (_state.value.conn != Conn.CONNECTED) return
+        val self = _state.value.profile?.node
+        val targets = _state.value.links.map { it.number }.filter { it != self }.distinct()
+        if (targets.isEmpty()) return
+        log(app.getString(R.string.ev_unlink_all), LogEvent.Kind.CMD)
+        Thread {
+            targets.forEach { n ->
+                c.sendDtmf("*1$n")
+                Thread.sleep(200L * (n.length + 2) + 1500)
+            }
+        }.apply { isDaemon = true }.start()
+        refreshLinksSoon()
+    }
 
     fun describe(n: String): String {
         val info = directory.lookup(n)
