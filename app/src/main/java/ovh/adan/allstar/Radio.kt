@@ -108,6 +108,7 @@ object Radio {
                 }
                 override fun onText(text: String) {
                     NodeStats.parseLinkList(text)?.let { l -> setLinks(l, fromNode = true); return }
+                    onNodeText(text)
                 }
             })
         LinkService.start(app)
@@ -191,6 +192,32 @@ object Radio {
         c.sendDtmf(digits)
         log(label ?: app.getString(R.string.ev_dtmf, digits), LogEvent.Kind.CMD)
         refreshLinksSoon()
+        // *70 only answers by voice; show the link list the app already knows as text.
+        if (digits == "*70") scope.launch {
+            delay(4500)
+            val l = _state.value.links.map { describe(it.number) }
+            notify(if (l.isEmpty()) app.getString(R.string.ev_no_links) else app.getString(R.string.ev_links_now, l.joinToString(", ")))
+        }
+    }
+
+    /** Telemetry text the node sends to IAX clients, e.g. "T 60596 STATS_TIME,1795376829" for *722. */
+    private fun onNodeText(text: String) {
+        val m = Regex("^T\\s+\\d+\\s+([A-Z_]+)(?:,(.*))?").find(text.trim()) ?: return
+        val (what, arg) = m.destructured
+        when (what) {
+            "STATS_TIME" -> arg.trim().toLongOrNull()?.let { t ->
+                notify(app.getString(R.string.ev_node_time,
+                    SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(t * 1000))))
+            }
+            else -> notify(app.getString(R.string.ev_node_said, (what + if (arg.isNotBlank()) " $arg" else "").trim()))
+        }
+    }
+
+    private fun notify(text: String) {
+        log(text, LogEvent.Kind.INFO)
+        android.os.Handler(android.os.Looper.getMainLooper()).post {
+            android.widget.Toast.makeText(app, text, android.widget.Toast.LENGTH_LONG).show()
+        }
     }
 
     fun linkNode(n: String, monitorOnly: Boolean = false) {

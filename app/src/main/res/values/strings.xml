@@ -120,11 +120,15 @@
     <string name="cmd_link">+ node number: link (talk and listen)</string>
     <string name="cmd_monitor">+ node number: listen only</string>
     <string name="cmd_unlink">+ node number: unlink that node</string>
-    <string name="cmd_status">Status: the node says its links out loud *</string>
-    <string name="cmd_time">The node says the time *</string>
+    <string name="cmd_status">Status: your links (by voice * and shown here)</string>
+    <string name="cmd_time">The node time (shown here; by voice *)</string>
     <string name="cmd_id">The node sends its ID (callsign) *</string>
     <string name="quick_commands_note">Tap a command to put it on the display, add the node number if needed and press Send. These are the standard ASL3 codes; your node may have others. EchoLink nodes are 3 + their number (EL 677857 → 3677857).\n* You only hear the answer if voice telemetry is on in your node (rpt.conf: telemdefault = 1). Many hubs and nodes bridged to digital networks turn it off.</string>
     <string name="echolink_node">EchoLink node · linked through your node</string>
     <string name="not_in_list">Not in the public list · you can still link it</string>
     <string name="echolink_hint">EchoLink node. Your node links to it through its own EchoLink module, so EchoLink must be enabled on your node.</string>
+    <string name="ev_node_time">Node time: %1$s</string>
+    <string name="ev_node_said">Node: %1$s</string>
+    <string name="ev_links_now">Linked now: %1$s</string>
+    <string name="ev_no_links">No nodes linked</string>
 </resources>
