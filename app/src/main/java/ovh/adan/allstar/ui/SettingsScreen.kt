@@ -230,6 +230,8 @@ fun SettingsScreen(
             Text("Mobile ASL Client ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
             Text(stringResource(R.string.about_text), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("by C31AG Adán", style = MaterialTheme.typography.labelLarge, color = LocalRadioColors.current.star,
+                modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End)
         }
     }
 

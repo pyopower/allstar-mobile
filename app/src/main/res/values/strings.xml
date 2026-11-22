@@ -154,4 +154,7 @@
     <string name="status_rx_from">Receiving from %1$s</string>
     <string name="f_allmon">Allmon3 address (optional)</string>
     <string name="f_allmon_sub">Shows which linked node is talking. Leave empty to find it automatically next to the server.</string>
+    <string name="exit_menu">Exit</string>
+    <string name="minimize">Minimize</string>
+    <string name="quit">Quit the app</string>
 </resources>

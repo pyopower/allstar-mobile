@@ -144,4 +144,7 @@
     <string name="status_rx_from">A receber de %1$s</string>
     <string name="f_allmon">Endereço do Allmon3 (opcional)</string>
     <string name="f_allmon_sub">Mostra que nó ligado está a falar. Vazio = procura-o automaticamente junto ao servidor.</string>
+    <string name="exit_menu">Sair</string>
+    <string name="minimize">Minimizar</string>
+    <string name="quit">Fechar a app</string>
 </resources>

@@ -1,5 +1,7 @@
 package ovh.adan.allstar.ui
 
+import androidx.compose.material.icons.filled.Minimize
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -202,12 +204,14 @@ private fun Header(
                         .clickable(enabled = profiles.size > 1 && state.conn == Conn.DISCONNECTED) { menu = true },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(active.title, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(listOf(active.node, active.callsign).filter { it.isNotBlank() }.joinToString(" · "),
+                        style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     if (profiles.size > 1 && state.conn == Conn.DISCONNECTED) Icon(Icons.Default.ExpandMore, null)
                 }
                 DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
                     profiles.forEach { p ->
-                        DropdownMenuItem(text = { Text("${p.title} · ${p.node}") }, onClick = { menu = false; onSelect(p) })
+                        DropdownMenuItem(text = { Text(listOf(p.node, p.callsign, p.name).filter { it.isNotBlank() }.joinToString(" · ")) },
+                            onClick = { menu = false; onSelect(p) })
                     }
                 }
             }
@@ -224,6 +228,7 @@ private fun Header(
                 Text(stringResource(if (up) R.string.disconnect else R.string.connect))
             }
         }
+        ExitMenu()
     }
 }
 
@@ -310,6 +315,26 @@ private fun LinkedRow(l: LinkedNode, canControl: Boolean, talking: Boolean, onOp
             if (canControl) IconButton(onClick = { Radio.unlinkNode(l.number) }) {
                 Icon(Icons.Default.Close, stringResource(R.string.unlink), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
+        }
+    }
+}
+
+/** Minimize (keeps the link in the background) or quit completely (disconnects and closes). */
+@Composable
+private fun ExitMenu() {
+    val act = androidx.compose.ui.platform.LocalContext.current as? android.app.Activity
+    var open by remember { mutableStateOf(false) }
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, stringResource(R.string.exit_menu))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.minimize)) },
+                leadingIcon = { Icon(Icons.Default.Minimize, null) },
+                onClick = { open = false; act?.moveTaskToBack(true) })
+            DropdownMenuItem(text = { Text(stringResource(R.string.quit)) },
+                leadingIcon = { Icon(Icons.Default.PowerSettingsNew, null) },
+                onClick = { open = false; Radio.disconnect(); act?.finishAndRemoveTask() })
         }
     }
 }

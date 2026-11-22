@@ -144,4 +144,7 @@
     <string name="status_rx_from">Réception de %1$s</string>
     <string name="f_allmon">Adresse Allmon3 (facultatif)</string>
     <string name="f_allmon_sub">Indique quel nœud lié est en train de parler. Vide = recherche automatique à côté du serveur.</string>
+    <string name="exit_menu">Quitter</string>
+    <string name="minimize">Réduire</string>
+    <string name="quit">Fermer l\'app</string>
 </resources>

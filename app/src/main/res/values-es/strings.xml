@@ -153,4 +153,7 @@
     <string name="status_rx_from">Recibiendo de %1$s</string>
     <string name="f_allmon">Dirección de Allmon3 (opcional)</string>
     <string name="f_allmon_sub">Sirve para ver qué nodo enlazado está hablando. Vacío = se busca solo junto al servidor.</string>
+    <string name="exit_menu">Salir</string>
+    <string name="minimize">Minimizar</string>
+    <string name="quit">Cerrar la app</string>
 </resources>

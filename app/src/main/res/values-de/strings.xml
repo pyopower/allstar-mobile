@@ -144,4 +144,7 @@
     <string name="status_rx_from">Empfang von %1$s</string>
     <string name="f_allmon">Allmon3-Adresse (optional)</string>
     <string name="f_allmon_sub">Zeigt, welcher verbundene Node gerade spricht. Leer = automatisch neben dem Server suchen.</string>
+    <string name="exit_menu">Beenden</string>
+    <string name="minimize">Minimieren</string>
+    <string name="quit">App beenden</string>
 </resources>

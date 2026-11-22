@@ -144,4 +144,7 @@
     <string name="status_rx_from">In ricezione da %1$s</string>
     <string name="f_allmon">Indirizzo Allmon3 (facoltativo)</string>
     <string name="f_allmon_sub">Mostra quale nodo collegato sta parlando. Vuoto = lo cerca da solo accanto al server.</string>
+    <string name="exit_menu">Esci</string>
+    <string name="minimize">Riduci a icona</string>
+    <string name="quit">Chiudi l\'app</string>
 </resources>
