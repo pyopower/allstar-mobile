@@ -31,7 +31,7 @@ phone ──IAX2 (ulaw)──▶ your node ──AllStar links──▶ any node
 - Runs in the background with a foreground service (Wi-Fi + wake locks)
 - External PTT: volume-down key, and broadcast intents `android.intent.action.PTT.down` / `PTT.up`
   (works with [PTT Bridge](https://github.com/pyopower/ptt-bridge) for Bluetooth speaker-mics)
-- English and Spanish
+- English, Spanish, Portuguese, Italian, French and German: follows the phone language or pick one in Settings
 
 ## Node setup
 

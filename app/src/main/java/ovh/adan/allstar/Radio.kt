@@ -95,7 +95,7 @@ object Radio {
         prefs.activeProfileId = profile.id
         remoteKeySeen = false
         _state.update { RadioState(conn = Conn.CONNECTING, profile = profile, events = it.events) }
-        log(app.getString(R.string.ev_connecting, profile.node, profile.host))
+        log(Lang.strings(app).getString(R.string.ev_connecting, profile.node, profile.host))
 
         val engine = AudioEngine(object : AudioEngine.Callbacks {
             override fun onMicFrame(ulaw: ByteArray) { client?.sendVoice(ulaw) }
@@ -119,7 +119,7 @@ object Radio {
                     remoteKeySeen = true
                     if (keyed != _state.value.rx) {
                         _state.update { it.copy(rx = keyed) }
-                        if (keyed) log(app.getString(R.string.ev_rx), LogEvent.Kind.RX)
+                        if (keyed) log(Lang.strings(app).getString(R.string.ev_rx), LogEvent.Kind.RX)
                     }
                 }
                 override fun onText(text: String) {
@@ -137,7 +137,7 @@ object Radio {
         pollJob?.cancel(); pollJob = null
         client?.hangup(); client = null
         audio?.stop(); audio = null
-        if (_state.value.conn != Conn.DISCONNECTED) log(app.getString(R.string.ev_disconnected))
+        if (_state.value.conn != Conn.DISCONNECTED) log(Lang.strings(app).getString(R.string.ev_disconnected))
         _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList()) }
         LinkService.stop(app)
     }
@@ -148,7 +148,7 @@ object Radio {
                 retriesLeft = 0
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
-                log(app.getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
+                log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
                 startPolling()
             }
             IaxClient.State.CLOSED -> {
@@ -158,8 +158,8 @@ object Radio {
                 pollJob?.cancel()
                 txGuardJob?.cancel()
                 if (wasUp) {
-                    if (reason != null) log(app.getString(R.string.ev_failed, reason), LogEvent.Kind.ERROR)
-                    else log(app.getString(R.string.ev_disconnected))
+                    if (reason != null) log(Lang.strings(app).getString(R.string.ev_failed, reason), LogEvent.Kind.ERROR)
+                    else log(Lang.strings(app).getString(R.string.ev_disconnected))
                 }
                 _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList()) }
                 val p = _state.value.profile
@@ -189,7 +189,7 @@ object Radio {
         txGuardJob = scope.launch {
             launch { while (true) { delay(REKEY_MS); client?.rekey() } }
             delay(prefs.txTimeoutSec * 1000L)
-            log(app.getString(R.string.ev_tot), LogEvent.Kind.ERROR)
+            log(Lang.strings(app).getString(R.string.ev_tot), LogEvent.Kind.ERROR)
             pttUp()
         }
     }
@@ -205,7 +205,7 @@ object Radio {
         }
         val secs = (SystemClock.elapsedRealtime() - _state.value.txStartedAt) / 1000.0
         _state.update { it.copy(tx = false, txLevel = -90f) }
-        if (secs >= 0.5) log(app.getString(R.string.ev_tx, secs), LogEvent.Kind.TX)
+        if (secs >= 0.5) log(Lang.strings(app).getString(R.string.ev_tx, secs), LogEvent.Kind.TX)
     }
 
     fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
@@ -216,13 +216,13 @@ object Radio {
         val c = client ?: return
         if (_state.value.conn != Conn.CONNECTED) return
         c.sendDtmf(digits)
-        log(label ?: app.getString(R.string.ev_dtmf, digits), LogEvent.Kind.CMD)
+        log(label ?: Lang.strings(app).getString(R.string.ev_dtmf, digits), LogEvent.Kind.CMD)
         refreshLinksSoon()
         // *70 only answers by voice; show the link list the app already knows as text.
         if (digits == "*70") scope.launch {
             delay(4500)
             val l = _state.value.links.map { describe(it.number) }
-            notify(if (l.isEmpty()) app.getString(R.string.ev_no_links) else app.getString(R.string.ev_links_now, l.joinToString(", ")))
+            notify(if (l.isEmpty()) Lang.strings(app).getString(R.string.ev_no_links) else Lang.strings(app).getString(R.string.ev_links_now, l.joinToString(", ")))
         }
     }
 
@@ -232,10 +232,10 @@ object Radio {
         val (what, arg) = m.destructured
         when (what) {
             "STATS_TIME" -> arg.trim().toLongOrNull()?.let { t ->
-                notify(app.getString(R.string.ev_node_time,
+                notify(Lang.strings(app).getString(R.string.ev_node_time,
                     SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(t * 1000))))
             }
-            else -> notify(app.getString(R.string.ev_node_said, (what + if (arg.isNotBlank()) " $arg" else "").trim()))
+            else -> notify(Lang.strings(app).getString(R.string.ev_node_said, (what + if (arg.isNotBlank()) " $arg" else "").trim()))
         }
     }
 
@@ -249,10 +249,10 @@ object Radio {
     fun linkNode(n: String, monitorOnly: Boolean = false) {
         addRecent(n)
         dtmf((if (monitorOnly) "*2" else "*3") + n,
-            app.getString(if (monitorOnly) R.string.ev_monitor else R.string.ev_link, describe(n)))
+            Lang.strings(app).getString(if (monitorOnly) R.string.ev_monitor else R.string.ev_link, describe(n)))
     }
 
-    fun unlinkNode(n: String) = dtmf("*1$n", app.getString(R.string.ev_unlink, describe(n)))
+    fun unlinkNode(n: String) = dtmf("*1$n", Lang.strings(app).getString(R.string.ev_unlink, describe(n)))
     /**
      * Stock ASL3 has no "disconnect all" DTMF code (*76 only exists on some older/custom configs),
      * so unlink each known link with *1, one after another.
@@ -263,7 +263,7 @@ object Radio {
         val self = _state.value.profile?.node
         val targets = _state.value.links.map { it.number }.filter { it != self }.distinct()
         if (targets.isEmpty()) return
-        log(app.getString(R.string.ev_unlink_all), LogEvent.Kind.CMD)
+        log(Lang.strings(app).getString(R.string.ev_unlink_all), LogEvent.Kind.CMD)
         Thread {
             targets.forEach { n ->
                 c.sendDtmf("*1$n")
@@ -310,8 +310,8 @@ object Radio {
         val old = _state.value.links.map { it.number }.toSet()
         val now = clean.map { it.number }.toSet()
         if (_state.value.conn == Conn.CONNECTED && (_state.value.links.isNotEmpty() || old.isNotEmpty() || fromNode)) {
-            (now - old).forEach { log(app.getString(R.string.ev_linked, describe(it))) }
-            (old - now).forEach { log(app.getString(R.string.ev_unlinked, describe(it))) }
+            (now - old).forEach { log(Lang.strings(app).getString(R.string.ev_linked, describe(it))) }
+            (old - now).forEach { log(Lang.strings(app).getString(R.string.ev_unlinked, describe(it))) }
         }
         _state.update { it.copy(links = clean, linksFromNode = it.linksFromNode || fromNode) }
     }

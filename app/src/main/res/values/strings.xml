@@ -148,4 +148,6 @@
     <string name="auto_connect_sub">Connects to the last used node automatically</string>
     <string name="start_on_boot">Start when the phone is switched on</string>
     <string name="start_on_boot_sub">Connects to the last node in the background. On Android 14 and later, open the app once to enable the microphone</string>
+    <string name="section_language">Language</string>
+    <string name="lang_system">System language</string>
 </resources>

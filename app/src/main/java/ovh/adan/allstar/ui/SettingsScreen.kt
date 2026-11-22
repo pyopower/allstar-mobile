@@ -1,5 +1,8 @@
 package ovh.adan.allstar.ui
 
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -109,6 +112,35 @@ fun SettingsScreen(
 
         // settingsVersion forces recomposition after a preference change
         key(settingsVersion) {
+            SettingsCard {
+                Text(stringResource(R.string.section_language), style = MaterialTheme.typography.titleMedium)
+                val act = LocalContext.current as? android.app.Activity
+                val cur = ovh.adan.allstar.Lang.code(LocalContext.current)
+                var open by remember { mutableStateOf(false) }
+                OutlinedButton(onClick = { open = true }, modifier = Modifier.fillMaxWidth()) {
+                    Text(ovh.adan.allstar.Lang.OPTIONS.firstOrNull { it.first == cur }?.second ?: stringResource(R.string.lang_system))
+                }
+                if (open) AlertDialog(
+                    onDismissRequest = { open = false },
+                    title = { Text(stringResource(R.string.section_language)) },
+                    text = {
+                        Column {
+                            (listOf("" to stringResource(R.string.lang_system)) + ovh.adan.allstar.Lang.OPTIONS).forEach { (code, name) ->
+                                Row(Modifier.fillMaxWidth().clickable {
+                                    open = false
+                                    if (code != cur) { ovh.adan.allstar.Lang.set(act ?: return@clickable, code); act.recreate() }
+                                }.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(selected = code == cur, onClick = null)
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(name, style = MaterialTheme.typography.bodyLarge)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.cancel)) } },
+                )
+            }
+
             SettingsCard {
                 Text(stringResource(R.string.ptt), style = MaterialTheme.typography.titleMedium)
                 SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {

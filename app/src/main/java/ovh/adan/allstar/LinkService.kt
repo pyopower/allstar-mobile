@@ -33,6 +33,8 @@ class LinkService : Service() {
     /** Started by BOOT_COMPLETED: Android never lets such a service gain the microphone type. */
     private var fromBoot = false
 
+    override fun attachBaseContext(base: Context) = super.attachBaseContext(Lang.wrap(base))
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

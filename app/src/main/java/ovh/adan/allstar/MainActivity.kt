@@ -57,6 +57,8 @@ class MainActivity : ComponentActivity() {
     }
     private val notifPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
+    override fun attachBaseContext(base: android.content.Context) = super.attachBaseContext(Lang.wrap(base))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

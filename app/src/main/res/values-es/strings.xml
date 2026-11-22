@@ -147,4 +147,6 @@
     <string name="auto_connect_sub">Se conecta solo al último nodo usado</string>
     <string name="start_on_boot">Iniciar al encender el móvil</string>
     <string name="start_on_boot_sub">Se conecta al último nodo en segundo plano. En Android 14 o superior, abre la app una vez para activar el micrófono</string>
+    <string name="section_language">Idioma</string>
+    <string name="lang_system">Idioma del sistema</string>
 </resources>
