@@ -15,18 +15,20 @@ data class Profile(
     val secret: String = "",
     val node: String = "",
     val callsign: String = "",
+    /** Allmon3 base URL (optional): used to show which link is talking. Empty = look for it next to the host. */
+    val allmon: String = "",
 ) {
     val isComplete get() = host.isNotBlank() && username.isNotBlank() && node.isNotBlank()
     val title get() = name.ifBlank { "Node $node" }
 
     fun toJson() = JSONObject().put("id", id).put("name", name).put("host", host).put("port", port)
-        .put("username", username).put("secret", secret).put("node", node).put("callsign", callsign)
+        .put("username", username).put("secret", secret).put("node", node).put("callsign", callsign).put("allmon", allmon)
 
     companion object {
         fun fromJson(o: JSONObject) = Profile(
             o.optString("id", UUID.randomUUID().toString()), o.optString("name"), o.optString("host"),
             o.optInt("port", 4569), o.optString("username"), o.optString("secret"),
-            o.optString("node"), o.optString("callsign"),
+            o.optString("node"), o.optString("callsign"), o.optString("allmon"),
         )
     }
 }

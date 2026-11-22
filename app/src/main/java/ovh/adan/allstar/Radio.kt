@@ -41,6 +41,8 @@ data class RadioState(
     val txStartedAt: Long = 0L,
     val connectedAt: Long = 0L,
     val links: List<LinkedNode> = emptyList(),
+    /** Links talking to us right now (from Allmon3), if known. */
+    val talkers: Set<String> = emptySet(),
     val linksFromNode: Boolean = false,
     val events: List<LogEvent> = emptyList(),
 )
@@ -69,6 +71,7 @@ object Radio {
     /** Automatic (re)connection attempts left after a failure: used by auto-connect and start-on-boot. */
     @Volatile private var retriesLeft = 0
     private var retryJob: Job? = null
+    private var allmon: ovh.adan.allstar.data.AllmonWatcher? = null
 
     /** Connect without user interaction (app start / phone boot), retrying a few times if the network is not ready. */
     fun autoConnect(profile: Profile) {
@@ -133,12 +136,13 @@ object Radio {
 
     fun disconnect() {
         retriesLeft = 0; retryJob?.cancel()
+        allmon?.stop(); allmon = null
         pttUp()
         pollJob?.cancel(); pollJob = null
         client?.hangup(); client = null
         audio?.stop(); audio = null
         if (_state.value.conn != Conn.DISCONNECTED) log(Lang.strings(app).getString(R.string.ev_disconnected))
-        _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList()) }
+        _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList(), talkers = emptySet()) }
         LinkService.stop(app)
     }
 
@@ -149,9 +153,16 @@ object Radio {
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
                 log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
+                _state.value.profile?.let { p ->
+                    allmon?.stop()
+                    allmon = ovh.adan.allstar.data.AllmonWatcher(p) { who ->
+                        if (_state.value.talkers != who) _state.update { it.copy(talkers = who) }
+                    }.also { it.start(scope) }
+                }
                 startPolling()
             }
             IaxClient.State.CLOSED -> {
+                allmon?.stop(); allmon = null
                 val wasUp = _state.value.conn != Conn.DISCONNECTED
                 client = null
                 audio?.stop(); audio = null
@@ -161,7 +172,7 @@ object Radio {
                     if (reason != null) log(Lang.strings(app).getString(R.string.ev_failed, reason), LogEvent.Kind.ERROR)
                     else log(Lang.strings(app).getString(R.string.ev_disconnected))
                 }
-                _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList()) }
+                _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
                 val p = _state.value.profile
                 if (reason != null && retriesLeft > 0 && p != null) {
                     // keep the foreground service: it cannot be restarted from the background

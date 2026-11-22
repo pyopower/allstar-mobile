@@ -150,4 +150,8 @@
     <string name="start_on_boot_sub">Connects to the last node in the background. On Android 14 and later, open the app once to enable the microphone</string>
     <string name="section_language">Language</string>
     <string name="lang_system">System language</string>
+    <string name="talking">talking now</string>
+    <string name="status_rx_from">Receiving from %1$s</string>
+    <string name="f_allmon">Allmon3 address (optional)</string>
+    <string name="f_allmon_sub">Shows which linked node is talking. Leave empty to find it automatically next to the server.</string>
 </resources>

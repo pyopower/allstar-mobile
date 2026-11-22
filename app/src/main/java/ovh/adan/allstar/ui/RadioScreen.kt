@@ -1,5 +1,6 @@
 package ovh.adan.allstar.ui
 
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
@@ -140,7 +141,7 @@ fun RadioScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
             }
-            items(state.links, key = { it.number }) { l -> LinkedRow(l, state.conn == Conn.CONNECTED, onOpenNode) }
+            items(state.links, key = { it.number }) { l -> LinkedRow(l, state.conn == Conn.CONNECTED, l.number in state.talkers, onOpenNode) }
             item {
                 Row(
                     Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).clickable { showLog = !showLog }.padding(vertical = 4.dp),
@@ -233,6 +234,7 @@ private fun StatusCard(state: RadioState) {
         state.conn == Conn.DISCONNECTED -> stringResource(R.string.status_disconnected) to rc.muted
         state.conn == Conn.CONNECTING -> stringResource(R.string.status_connecting) to rc.star
         state.tx -> stringResource(R.string.status_tx) to rc.tx
+        state.talkers.isNotEmpty() && !state.tx -> stringResource(R.string.status_rx_from, state.talkers.joinToString(", ") { Radio.describe(it) }) to rc.rx
         state.rx -> stringResource(R.string.status_rx) to rc.rx
         else -> stringResource(R.string.status_connected) to rc.idle
     }
@@ -274,18 +276,29 @@ private fun StatusCard(state: RadioState) {
 }
 
 @Composable
-private fun LinkedRow(l: LinkedNode, canControl: Boolean, onOpen: (String) -> Unit) {
+private fun LinkedRow(l: LinkedNode, canControl: Boolean, talking: Boolean, onOpen: (String) -> Unit) {
     val info = Radio.directory.lookup(l.number)
+    val rc = LocalRadioColors.current
+    val border by animateColorAsState(if (talking) rc.rx else Color.Transparent, label = "talk")
     Card(
         onClick = { onOpen(l.number) },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.border(2.dp, border, RoundedCornerShape(16.dp)),
     ) {
         Row(Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            NodeBadge(l.number)
+            NodeBadge(l.number, highlight = talking)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                NodeTitle(info, l.number)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    NodeTitle(info, l.number)
+                    if (talking) {
+                        Spacer(Modifier.width(8.dp))
+                        Icon(Icons.Default.GraphicEq, null, tint = rc.rx, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.talking), style = MaterialTheme.typography.labelMedium, color = rc.rx)
+                    }
+                }
                 val sub = listOf(info?.description, info?.location).filter { !it.isNullOrBlank() }.joinToString(" · ")
                 val mode = when (l.mode) {
                     'R' -> stringResource(R.string.mode_r); 'C' -> stringResource(R.string.mode_c)

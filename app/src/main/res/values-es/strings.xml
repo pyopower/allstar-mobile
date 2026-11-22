@@ -149,4 +149,8 @@
     <string name="start_on_boot_sub">Se conecta al último nodo en segundo plano. En Android 14 o superior, abre la app una vez para activar el micrófono</string>
     <string name="section_language">Idioma</string>
     <string name="lang_system">Idioma del sistema</string>
+    <string name="talking">hablando</string>
+    <string name="status_rx_from">Recibiendo de %1$s</string>
+    <string name="f_allmon">Dirección de Allmon3 (opcional)</string>
+    <string name="f_allmon_sub">Sirve para ver qué nodo enlazado está hablando. Vacío = se busca solo junto al servidor.</string>
 </resources>

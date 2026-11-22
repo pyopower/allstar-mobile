@@ -140,4 +140,8 @@
         <item quantity="one">%1$d collegamento</item>
         <item quantity="other">%1$d collegamenti</item>
     </plurals>
+    <string name="talking">sta parlando</string>
+    <string name="status_rx_from">In ricezione da %1$s</string>
+    <string name="f_allmon">Indirizzo Allmon3 (facoltativo)</string>
+    <string name="f_allmon_sub">Mostra quale nodo collegato sta parlando. Vuoto = lo cerca da solo accanto al server.</string>
 </resources>

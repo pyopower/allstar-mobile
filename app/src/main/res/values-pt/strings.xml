@@ -140,4 +140,8 @@
         <item quantity="one">%1$d ligação</item>
         <item quantity="other">%1$d ligações</item>
     </plurals>
+    <string name="talking">a falar</string>
+    <string name="status_rx_from">A receber de %1$s</string>
+    <string name="f_allmon">Endereço do Allmon3 (opcional)</string>
+    <string name="f_allmon_sub">Mostra que nó ligado está a falar. Vazio = procura-o automaticamente junto ao servidor.</string>
 </resources>

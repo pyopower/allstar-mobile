@@ -271,6 +271,7 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
     var secret by remember { mutableStateOf(p.secret) }
     var node by remember { mutableStateOf(p.node) }
     var call by remember { mutableStateOf(p.callsign) }
+    var allmon by remember { mutableStateOf(p.allmon) }
     var show by remember { mutableStateOf(false) }
     val valid = host.isNotBlank() && user.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
         (port.toIntOrNull() ?: 0) in 1..65535
@@ -292,12 +293,15 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
                         Icon(if (show) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } },
                     modifier = Modifier.fillMaxWidth())
                 Field(name, { name = it }, stringResource(R.string.f_name))
+                Field(allmon, { allmon = it.trim() }, stringResource(R.string.f_allmon), KeyboardType.Uri)
+                Text(stringResource(R.string.f_allmon_sub), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },
         confirmButton = {
             TextButton(enabled = valid, onClick = {
                 onSave(p.copy(name = name.trim(), host = host, port = port.toInt(), username = user, secret = secret,
-                    node = node, callsign = call.trim()))
+                    node = node, callsign = call.trim(), allmon = allmon))
             }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {
