@@ -65,6 +65,7 @@ object Radio {
     private var txGuardJob: Job? = null
     @Volatile private var remoteKeySeen = false
     @Volatile private var lastLoudRx = 0L
+    @Volatile private var loudRun = 0
 
     fun init(ctx: Context) {
         if (::app.isInitialized) return
@@ -86,7 +87,9 @@ object Radio {
         val engine = AudioEngine(object : AudioEngine.Callbacks {
             override fun onMicFrame(ulaw: ByteArray) { client?.sendVoice(ulaw) }
             override fun onRxLevel(db: Float) {
-                if (db > -42f) lastLoudRx = SystemClock.elapsedRealtime()
+                // Level-based RX detection (app_rpt sends no key/unkey to radio-less clients):
+                // require two loud frames in a row to start, and hold 1.5 s through speech pauses.
+                if (db > -40f) { if (++loudRun >= 2) lastLoudRx = SystemClock.elapsedRealtime() } else loudRun = 0
                 _state.update { it.copy(rxLevel = db, rx = if (remoteKeySeen) it.rx else isRxByLevel()) }
             }
             override fun onTxLevel(db: Float) { _state.update { it.copy(txLevel = db) } }
@@ -150,7 +153,7 @@ object Radio {
         }
     }
 
-    private fun isRxByLevel() = SystemClock.elapsedRealtime() - lastLoudRx < 400
+    private fun isRxByLevel() = SystemClock.elapsedRealtime() - lastLoudRx < 1500
 
     // ----------------------------------------------------------------- PTT
 
