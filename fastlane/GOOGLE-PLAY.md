@@ -42,10 +42,16 @@ Hand-off for publishing. Everything below is ready except what is marked **TODO*
   - Nothing else is collected (no account, no analytics, no crash reporting, no location).
   - Encrypted in transit: **No** (IAX2 is not encrypted).
   - Users cannot request deletion because nothing is stored by the developer.
-- **App access**: *All or some functionality is restricted* → instructions only, no demo login (decided):
-  "Connecting requires the user's own AllStarLink node (amateur radio licence). Without it you can still use the
-  Nodes tab (AllStarLink node list with online status, EchoLink repeaters/links/conferences on the air), the node
-  details and all Settings. Node owners create a login with the one-command setup shown in Settings."
+- **App access**: *All or some functionality is restricted* → demo login for reviewers (decided 22-nov):
+  a dedicated private demo node **1923** on the raspi ASL, IAX user **playreview** (password: raspi
+  `~/.asl-playreview-secret`, never in the repo), server **ip.adan.ovh**, port **4569**. The node has no link
+  functions at all (empty `functions-review` stanza), so reviewers cannot link it to the network.
+  Instructions for reviewers (English):
+  "Open Settings > Add node and enter: Node number 1923, Server ip.adan.ovh, IAX port 4569, IAX user playreview,
+  IAX password (below). Go to Radio and tap Connect: the status changes to Listening. Hold PTT to transmit; the
+  activity log shows the transmission. Node 1923 is a private demo node with linking disabled, so the Link /
+  Monitor buttons in Nodes will not connect to other nodes from this account; browsing the AllStarLink and
+  EchoLink lists, node details, favorites and all settings work normally."
 - **Foreground service declarations** (Android 14+). Videos (recorded on the ZUK, Android 15):
   - microphone + mediaPlayback: https://descargas.adan.ovh/mobile-asl-fgs-microphone-mediaplayback.mp4
   - specialUse (start at boot): https://descargas.adan.ovh/mobile-asl-fgs-specialuse-boot.mp4
