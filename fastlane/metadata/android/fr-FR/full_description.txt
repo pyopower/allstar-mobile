@@ -1,0 +1,22 @@
+Mobile ASL Client transforme votre téléphone en station AllStarLink sans radio. Il se connecte à VOTRE PROPRE nœud AllStarLink en IAX —comme le client PC classique iaxRpt— et de là vous pouvez vous lier à n'importe lequel des ~42 000 nœuds et hubs du réseau, ou à des relais, links et conférences EchoLink, et parler.
+
+FONCTIONS
+• PTT maintenu ou à bascule, avec durée maximale d'émission et vumètres RX/TX
+• Liste complète des nœuds avec recherche par numéro, indicatif, lieu ou description, et indicateur « en ligne »
+• Onglet EchoLink : relais, links et conférences en ce moment, avec l'état occupé
+• Favoris et récents séparés pour AllStar et EchoLink
+• Lier, écoute seule, délier et tout délier d'un geste ; clavier DTMF avec les commandes standard d'ASL3 expliquées
+• Voyez quel nœud lié est en train de parler (avec Allmon3 sur votre nœud)
+• Configuration du nœud en une seule commande : lancez un script sur le nœud et scannez le QR code affiché
+• Fonctionne en arrière-plan ; connexion automatique et démarrage à l'allumage en option
+• PTT externe : touche volume bas et intents PTT (fonctionne avec les micros Bluetooth via PTT Bridge)
+• Français, anglais, espagnol, portugais, italien et allemand
+
+PRÉREQUIS
+• Une licence de radioamateur. Émettre via un nœud est soumis à la réglementation de votre pays.
+• L'accès à un nœud AllStarLink (ASL3 recommandé) joignable depuis Internet (UDP 4569).
+
+CONFIDENTIALITÉ
+Pas de compte, pas de publicité, pas de statistiques. Votre voix ne va qu'au nœud que vous configurez ; les listes de nœuds et EchoLink sont téléchargées depuis les services publics allstarlink.org et echolink.org.
+
+Mobile ASL Client est un logiciel libre (GPL-3.0) et un projet indépendant, sans lien avec AllStarLink, Inc. ni EchoLink.

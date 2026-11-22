@@ -1,0 +1,22 @@
+O Mobile ASL Client transforma o seu telemóvel numa estação AllStarLink sem rádio. Liga-se ao SEU PRÓPRIO nó AllStarLink por IAX —como o clássico iaxRpt para PC— e a partir daí pode ligar-se a qualquer um dos ~42.000 nós e hubs da rede, ou a repetidores, links e salas EchoLink, e falar.
+
+FUNÇÕES
+• PTT mantido ou alternado, com tempo máximo de transmissão e medidores RX/TX
+• Lista completa de nós com pesquisa por número, indicativo, local ou descrição, e indicador «em linha»
+• Separador EchoLink: repetidores, links e salas no ar neste momento, com estado de ocupado
+• Favoritos e recentes separados para AllStar e EchoLink
+• Ligar, só escutar, desligar e desligar todos com um toque; teclado DTMF com os comandos padrão do ASL3 explicados
+• Veja que nó ligado está a falar (com Allmon3 no seu nó)
+• Configuração do nó com um único comando: execute um script no nó e leia o código QR que ele mostra
+• Funciona em segundo plano; ligação automática e arranque ao ligar o telemóvel opcionais
+• PTT externo: tecla de baixar volume e intents PTT (funciona com microfones Bluetooth via PTT Bridge)
+• Português, inglês, espanhol, italiano, francês e alemão
+
+REQUISITOS
+• Licença de radioamador. Transmitir através de um nó está sujeito à regulamentação do seu país.
+• Acesso a um nó AllStarLink (recomenda-se ASL3) acessível pela Internet (UDP 4569).
+
+PRIVACIDADE
+Sem contas, sem anúncios e sem análises. A sua voz só vai para o nó que configurar; as listas de nós e do EchoLink são descarregadas dos serviços públicos allstarlink.org e echolink.org.
+
+O Mobile ASL Client é software livre (GPL-3.0) e um projeto independente, sem relação com a AllStarLink, Inc. nem com o EchoLink.
