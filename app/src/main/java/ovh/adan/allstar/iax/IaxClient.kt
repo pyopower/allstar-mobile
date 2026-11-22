@@ -85,8 +85,13 @@ class IaxClient(
     /** Send one 20 ms frame of ulaw audio (160 bytes). */
     fun sendVoice(ulaw: ByteArray) = synchronized(lock) {
         if (state != State.CONNECTED) return@synchronized
-        var ts = nowMs()
-        if (ts <= lastVoiceTs) ts = lastVoiceTs + 1
+        // Voice timestamps follow the audio clock (+20 ms per frame), not the time the frame was
+        // handed over: AudioRecord delivers frames in bursts, and the node's jitter buffer drops
+        // frames whose timestamps collide or bunch up. Resync to the wall clock after a pause
+        // or when the two clocks drift apart by more than 200 ms.
+        val now = nowMs()
+        val next = lastVoiceTs + FRAME_MS
+        val ts = if (lastVoiceTs < 0 || kotlin.math.abs(now - next) > 200) maxOf(now, lastVoiceTs + FRAME_MS) else next
         lastVoiceTs = ts
         val high = ts and 0xffff0000L
         if (needFullVoice || high != lastFullVoiceHigh) {
@@ -330,6 +335,7 @@ class IaxClient(
         const val NEWKEY = "!NEWKEY!"
 
         const val FT_DTMF = 1; const val FT_VOICE = 2; const val FT_CONTROL = 4
+        const val FRAME_MS = 20L
         const val FT_IAX = 6; const val FT_TEXT = 7; const val FT_DTMF_BEGIN = 12
 
         const val IAX_NEW = 1; const val IAX_PING = 2; const val IAX_PONG = 3; const val IAX_ACK = 4

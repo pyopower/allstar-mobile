@@ -85,17 +85,24 @@ class AudioEngine(private val callbacks: Callbacks) {
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                     .setChannelMask(AudioFormat.CHANNEL_OUT_MONO).build()
             )
-            .setBufferSizeInBytes(maxOf(minBuf, FRAME * 2 * 6))
+            .setBufferSizeInBytes(maxOf(minBuf, FRAME * 2 * 4))
             .setTransferMode(AudioTrack.MODE_STREAM)
             .build()
         val silence = ShortArray(FRAME)
+        val conceal = ShortArray(FRAME)
+        var last: ShortArray? = null
         var buffering = true
         var quietFrames = 0
+        var concealed = 0
+        // Adaptive playout depth: audio relayed from bridged networks (DVSwitch/USRP) arrives
+        // very bursty, so grow the buffer on every underrun and shrink it slowly when stable.
+        var target = PREFILL
+        var stableFrames = 0
         try {
             track.play()
             while (running) {
                 if (buffering) {
-                    if (rxQueue.size < PREFILL) {
+                    if (rxQueue.size < target) {
                         // keep the track fed with silence while (re)filling the buffer
                         track.write(silence, 0, FRAME)
                         if (++quietFrames % 5 == 0) callbacks.onRxLevel(-90f)
@@ -103,13 +110,32 @@ class AudioEngine(private val callbacks: Callbacks) {
                     }
                     buffering = false
                 }
-                val f = rxQueue.poll(60, TimeUnit.MILLISECONDS)
-                if (f == null) { buffering = true; continue }
+                val f = rxQueue.poll(25, TimeUnit.MILLISECONDS)
+                if (f == null) {
+                    val l = last
+                    if (l != null && concealed < 3) {
+                        // short gap: repeat the last frame, fading, instead of a hard cut
+                        concealed++
+                        val k = 0.6f / concealed
+                        for (i in l.indices) conceal[i] = clip(l[i] * k)
+                        track.write(conceal, 0, FRAME)
+                        continue
+                    }
+                    if (l != null) target = minOf(target + 2, MAX_TARGET)   // real underrun mid-stream
+                    last = null; concealed = 0; stableFrames = 0
+                    buffering = true
+                    continue
+                }
+                if (concealed > 0) { target = minOf(target + 1, MAX_TARGET); concealed = 0 }
+                // too much queued (a burst arrived): drop a frame to keep latency bounded
+                if (rxQueue.size > target + 6) rxQueue.poll()
+                if (++stableFrames > 1500 && target > PREFILL) { target--; stableFrames = 0 }   // 30 s ok
                 quietFrames = 0
                 val g = speakerGain
                 if (g != 1.0f) for (i in f.indices) f[i] = clip(f[i] * g)
                 callbacks.onRxLevel(levelDb(f))
                 track.write(f, 0, f.size)
+                last = f
             }
         } catch (_: InterruptedException) {
         } finally {
@@ -165,8 +191,9 @@ class AudioEngine(private val callbacks: Callbacks) {
     companion object {
         const val RATE = 8000
         const val FRAME = 160          // 20 ms
-        private const val PREFILL = 3  // 60 ms
-        private const val MAX_QUEUE = 15
+        private const val PREFILL = 4      // 80 ms initial playout depth
+        private const val MAX_TARGET = 14  // 280 ms
+        private const val MAX_QUEUE = 30
 
         private fun clip(v: Float): Short = v.coerceIn(-32768f, 32767f).toInt().toShort()
         private fun clip(v: Int): Short = v.coerceIn(-32768, 32767).toShort()
