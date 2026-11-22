@@ -46,7 +46,9 @@ Hand-off for publishing. Everything below is ready except what is marked **TODO*
   "Connecting requires the user's own AllStarLink node (amateur radio licence). Without it you can still use the
   Nodes tab (AllStarLink node list with online status, EchoLink repeaters/links/conferences on the air), the node
   details and all Settings. Node owners create a login with the one-command setup shown in Settings."
-- **Foreground service declarations** (Android 14+), with a short video for each (**TODO** record):
+- **Foreground service declarations** (Android 14+). Videos (recorded on the ZUK, Android 15):
+  - microphone + mediaPlayback: https://descargas.adan.ovh/mobile-asl-fgs-microphone-mediaplayback.mp4
+  - specialUse (start at boot): https://descargas.adan.ovh/mobile-asl-fgs-specialuse-boot.mp4
   - `microphone`: "Push-to-talk voice to the user's AllStarLink node keeps working when the app is in the
     background or the screen is off (hardware/Bluetooth PTT buttons)."
   - `mediaPlayback`: "Continuous playback of the radio audio received from the user's AllStarLink node while the
