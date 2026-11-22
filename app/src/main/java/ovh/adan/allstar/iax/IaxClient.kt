@@ -77,6 +77,16 @@ class IaxClient(
         sendFull(FT_CONTROL, CTRL_RADIO_KEY)
     }
 
+    /**
+     * Repeat RADIO_KEY while transmitting. After "!NEWKEY!" app_rpt uses redundant keying:
+     * it re-sends key state every 2 s and unkeys a link that has sent no RADIO_KEY for 10 s,
+     * whatever the audio (app_rpt.c, REDUNDANT_TX_TIME * 5).
+     */
+    fun rekey() = synchronized(lock) {
+        if (state != State.CONNECTED) return@synchronized
+        sendFull(FT_CONTROL, CTRL_RADIO_KEY)
+    }
+
     fun unkey() = synchronized(lock) {
         if (state != State.CONNECTED) return@synchronized
         sendFull(FT_CONTROL, CTRL_RADIO_UNKEY)

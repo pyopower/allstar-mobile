@@ -153,6 +153,8 @@ object Radio {
         }
     }
 
+    private val REKEY_MS = 2000L
+
     private fun isRxByLevel() = SystemClock.elapsedRealtime() - lastLoudRx < 1500
 
     // ----------------------------------------------------------------- PTT
@@ -165,6 +167,7 @@ object Radio {
         _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime()) }
         txGuardJob?.cancel()
         txGuardJob = scope.launch {
+            launch { while (true) { delay(REKEY_MS); client?.rekey() } }
             delay(prefs.txTimeoutSec * 1000L)
             log(app.getString(R.string.ev_tot), LogEvent.Kind.ERROR)
             pttUp()
