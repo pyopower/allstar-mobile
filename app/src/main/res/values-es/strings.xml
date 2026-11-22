@@ -106,4 +106,13 @@
         <item quantity="one">%1$d enlace</item>
         <item quantity="other">%1$d enlaces</item>
     </plurals>
+    <string name="auto_setup_title">Configurar mi nodo</string>
+    <string name="auto_setup_text">Ejecuta este único comando en tu nodo (por SSH o consola). Vale para instalaciones normales y en Docker: crea un acceso para esta app y muestra un código QR. Escanéalo con la cámara, o copia el enlace que imprime y pégalo aquí.</string>
+    <string name="copy_command">Copiar comando</string>
+    <string name="paste_link">Pegar enlace</string>
+    <string name="copied">Copiado</string>
+    <string name="bad_link">El portapapeles no tiene un enlace de configuración de Mobile ASL</string>
+    <string name="manual_setup">Configuración manual</string>
+    <string name="import_title">¿Añadir este nodo?</string>
+    <string name="import_add">Añadir</string>
 </resources>

@@ -33,6 +33,21 @@ phone ──IAX2 (ulaw)──▶ your node ──AllStar links──▶ any node
 
 ## Node setup
 
+### Easy way: one command
+
+Run this on your node (SSH or console). It works on normal ASL installs and on ASL in Docker:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/pyopower/allstar-mobile/main/tools/setup-node.sh | sudo bash
+```
+
+It creates a dedicated IAX login with a random password, reloads Asterisk and prints a QR code
+(if `qrencode` is installed) and a `mobileasl://` link. Scan the QR with the phone camera, or copy the
+link and use **Settings → Set up my node → Paste link** in the app. Run it again to get a new password,
+or with `--remove` to delete the login. Options: `--node`, `--container`, `--host`.
+
+### Manual way
+
 Add a dedicated IAX user and dialplan context to your node (ASL3 shown):
 
 `/etc/asterisk/iax.conf`
@@ -88,4 +103,11 @@ busca en toda la red, enlaza con cualquier nodo y habla desde el móvil.
 - Favoritos, recientes y varios perfiles de nodo
 - PTT externo: tecla de bajar volumen e intents `android.intent.action.PTT.down` / `PTT.up`
 
-La configuración del nodo es la del apartado *Node setup*. Software libre GPL-3.0, sin relación con AllStarLink, Inc.
+**Configurar el nodo con un solo comando** (instalación normal o Docker), en el nodo por SSH:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/pyopower/allstar-mobile/main/tools/setup-node.sh | sudo bash
+```
+
+Crea el acceso, muestra un QR y un enlace `mobileasl://` que añade el nodo a la app (Ajustes → Configurar mi nodo → Pegar enlace).
+La configuración manual es la del apartado *Node setup*. Software libre GPL-3.0, sin relación con AllStarLink, Inc.

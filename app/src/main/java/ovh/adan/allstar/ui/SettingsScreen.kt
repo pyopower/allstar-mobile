@@ -17,6 +17,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import android.widget.Toast
+import ovh.adan.allstar.data.SetupLink
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -60,12 +70,15 @@ import ovh.adan.allstar.data.PttMode
 fun SettingsScreen(
     profiles: List<Profile>, activeId: String?,
     onSaveProfile: (Profile) -> Unit, onDeleteProfile: (Profile) -> Unit, onSelectProfile: (Profile) -> Unit,
-    editRequest: Boolean, onEditRequestHandled: () -> Unit,
+    editRequest: Profile?, onEditRequestHandled: () -> Unit, onImportLink: (Profile) -> Profile,
     settingsVersion: Int, onSettingsChanged: () -> Unit,
 ) {
     val prefs = Radio.prefs
     var editing by remember { mutableStateOf<Profile?>(null) }
-    if (editRequest) { editing = Profile(); onEditRequestHandled() }
+    if (editRequest != null) { editing = editRequest; onEditRequestHandled() }
+    val ctx = LocalContext.current
+    val clipboard = LocalClipboardManager.current
+    var showManual by remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -121,6 +134,29 @@ fun SettingsScreen(
         }
 
         SettingsCard {
+            Text(stringResource(R.string.auto_setup_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.auto_setup_text), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            SelectionContainer {
+                Text(SetupLink.COMMAND, fontFamily = FontFamily.Monospace, fontSize = 12.sp,
+                    modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(10.dp)).padding(12.dp))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilledTonalButton(onClick = {
+                    clipboard.setText(AnnotatedString(SetupLink.COMMAND))
+                    Toast.makeText(ctx, R.string.copied, Toast.LENGTH_SHORT).show()
+                }) { Icon(Icons.Default.ContentCopy, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.copy_command)) }
+                FilledTonalButton(onClick = {
+                    val p = SetupLink.parse(clipboard.getText()?.text)
+                    if (p == null) Toast.makeText(ctx, R.string.bad_link, Toast.LENGTH_LONG).show()
+                    else editing = onImportLink(p)
+                }) { Icon(Icons.Default.ContentPaste, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.paste_link)) }
+            }
+            TextButton(onClick = { showManual = !showManual }) {
+                Text(stringResource(R.string.manual_setup))
+                Icon(if (showManual) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+            }
+            if (showManual) {
             Text(stringResource(R.string.setup_help_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.setup_help), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -145,6 +181,7 @@ fun SettingsScreen(
                     fontFamily = FontFamily.Monospace, fontSize = 12.sp,
                     modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerHighest, RoundedCornerShape(10.dp)).padding(12.dp),
                 )
+            }
             }
             Text(stringResource(R.string.external_ptt), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)

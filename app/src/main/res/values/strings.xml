@@ -107,4 +107,13 @@
         <item quantity="one">%1$d link</item>
         <item quantity="other">%1$d links</item>
     </plurals>
+    <string name="auto_setup_title">Set up my node</string>
+    <string name="auto_setup_text">Run this one command on your node (SSH or console). It works on normal and Docker installs, creates a login for this app and shows a QR code. Scan it with the camera, or copy the link it prints and paste it here.</string>
+    <string name="copy_command">Copy command</string>
+    <string name="paste_link">Paste link</string>
+    <string name="copied">Copied</string>
+    <string name="bad_link">The clipboard has no Mobile ASL setup link</string>
+    <string name="manual_setup">Manual setup</string>
+    <string name="import_title">Add this node?</string>
+    <string name="import_add">Add</string>
 </resources>

@@ -1,6 +1,7 @@
 package ovh.adan.allstar
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ovh.adan.allstar.data.Profile
+import ovh.adan.allstar.data.SetupLink
 import ovh.adan.allstar.ui.AllStarTheme
 import ovh.adan.allstar.ui.NodeSheet
 import ovh.adan.allstar.ui.NodesScreen
@@ -45,6 +47,8 @@ import ovh.adan.allstar.ui.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     private var pendingConnect: Profile? = null
+    /** Profile from a mobileasl:// setup link, waiting to be reviewed in Settings. */
+    private var importRequest by mutableStateOf<Profile?>(null)
 
     private val micPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
         if (!ok) Toast.makeText(this, R.string.mic_needed, Toast.LENGTH_LONG).show()
@@ -61,7 +65,24 @@ class MainActivity : ComponentActivity() {
             ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
+        handleLink(intent)
         setContent { AllStarTheme { App() } }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleLink(intent)
+    }
+
+    private fun handleLink(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_VIEW) return
+        SetupLink.parse(intent.dataString)?.let { importRequest = mergeImport(it) }
+    }
+
+    /** Re-running the setup script on the same node updates the existing profile instead of duplicating it. */
+    private fun mergeImport(p: Profile): Profile {
+        val old = Radio.prefs.profiles.firstOrNull { it.host.equals(p.host, true) && it.username == p.username && it.node == p.node }
+        return old?.let { p.copy(id = it.id, name = it.name, callsign = it.callsign) } ?: p
     }
 
     private fun connect(p: Profile) {
@@ -91,7 +112,7 @@ class MainActivity : ComponentActivity() {
         var tab by rememberSaveable { mutableIntStateOf(0) }
         var version by remember { mutableIntStateOf(0) }       // bump to re-read prefs
         var openNode by remember { mutableStateOf<String?>(null) }
-        var addRequest by remember { mutableStateOf(false) }
+        var addRequest by remember { mutableStateOf<Profile?>(null) }
         val prefs = Radio.prefs
         // read prefs under `version` so changes recompose
         val profiles = remember(version) { prefs.profiles }
@@ -99,6 +120,10 @@ class MainActivity : ComponentActivity() {
         val favorites = remember(version) { prefs.favorites }
         val recents = remember(version, state.events.size) { prefs.recents }
         val pttMode = remember(version) { prefs.pttMode }
+
+        LaunchedEffect(importRequest) {
+            importRequest?.let { addRequest = it; tab = 2; importRequest = null }
+        }
 
         LaunchedEffect(version) {
             if (prefs.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -125,18 +150,19 @@ class MainActivity : ComponentActivity() {
                     0 -> RadioScreen(state, profiles, active, pttMode,
                         onConnect = { connect(it) },
                         onSelectProfile = { prefs.activeProfileId = it.id; version++ },
-                        onAddProfile = { tab = 2; addRequest = true },
+                        onAddProfile = { tab = 2; addRequest = Profile() },
                         onOpenNode = { openNode = it })
                     1 -> NodesScreen(state, favorites, recents, toggleFav) { openNode = it }
                     2 -> SettingsScreen(profiles, prefs.activeProfileId,
                         onSaveProfile = { p ->
                             prefs.profiles = prefs.profiles.filter { it.id != p.id } + p
-                            if (prefs.activeProfileId == null) prefs.activeProfileId = p.id
+                            if (prefs.activeProfileId == null || prefs.profiles.size == 1) prefs.activeProfileId = p.id
                             version++
                         },
                         onDeleteProfile = { p -> prefs.profiles = prefs.profiles.filter { it.id != p.id }; version++ },
                         onSelectProfile = { prefs.activeProfileId = it.id; version++ },
-                        editRequest = addRequest, onEditRequestHandled = { addRequest = false },
+                        editRequest = addRequest, onEditRequestHandled = { addRequest = null },
+                        onImportLink = { mergeImport(it) },
                         settingsVersion = version, onSettingsChanged = { version++ })
                 }
             }
