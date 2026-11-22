@@ -50,7 +50,10 @@ class LinkService : Service() {
         if (intent?.action == ACTION_BOOT) bootConnect()
         if (watch == null) watch = scope.launch {
             Radio.state.map { Triple(it.conn, it.rx, it.tx) }.distinctUntilChanged().collect {
-                getSystemService(NotificationManager::class.java).notify(NOTIF_ID, buildNotification(Radio.state.value))
+                // Once disconnected the service is being stopped: posting now would leave an orphan
+                // (non-foreground, ongoing) notification behind after the service is gone.
+                if (it.first != Conn.DISCONNECTED && instance === this@LinkService)
+                    getSystemService(NotificationManager::class.java).notify(NOTIF_ID, buildNotification(Radio.state.value))
             }
         }
         return START_NOT_STICKY
@@ -91,6 +94,8 @@ class LinkService : Service() {
     override fun onDestroy() {
         if (instance === this) instance = null
         watch?.cancel()
+        ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
+        getSystemService(NotificationManager::class.java).cancel(NOTIF_ID)
         runCatching { wake?.release() }
         runCatching { wifi?.release() }
         super.onDestroy()
