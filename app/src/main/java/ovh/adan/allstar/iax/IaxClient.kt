@@ -32,7 +32,8 @@ class IaxClient(
 
     interface Listener {
         fun onState(state: State, reason: String? = null)
-        fun onVoice(ulaw: ByteArray)
+        /** [ts16]: low 16 bits of the IAX timestamp (ms), to spot lost frames. */
+        fun onVoice(ulaw: ByteArray, ts16: Int)
         fun onRemoteKey(keyed: Boolean)
         fun onText(text: String)
     }
@@ -216,7 +217,7 @@ class IaxClient(
         if (b.size < 4) return
         if (b[0].toInt() and 0x80 == 0) {
             // mini voice frame
-            if (b.size > 4) listener.onVoice(b.copyOfRange(4, b.size))
+            if (b.size > 4) listener.onVoice(b.copyOfRange(4, b.size), ((b[2].toInt() and 0xff) shl 8) or (b[3].toInt() and 0xff))
             return
         }
         if (b.size < 12) return
@@ -269,7 +270,7 @@ class IaxClient(
                         }
                     }
                 }
-                FT_VOICE -> { ack(ts); listener.onVoice(body) }
+                FT_VOICE -> { ack(ts); listener.onVoice(body, (ts and 0xffff).toInt()) }
                 FT_TEXT -> {
                     ack(ts)
                     val t = String(body).trimEnd('\u0000')

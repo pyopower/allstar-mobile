@@ -219,7 +219,7 @@ object Radio {
                 override fun onState(state: IaxClient.State, reason: String?) {
                     if (client === self) onIaxState(state, reason, self?.rejected == true)  // ignore a replaced call
                 }
-                override fun onVoice(ulaw: ByteArray) { audio?.onNetworkVoice(ulaw) }
+                override fun onVoice(ulaw: ByteArray, ts16: Int) { audio?.onNetworkVoice(ulaw, ts16) }
                 override fun onRemoteKey(keyed: Boolean) {
                     remoteKeySeen = true
                     if (keyed != _state.value.rx) {

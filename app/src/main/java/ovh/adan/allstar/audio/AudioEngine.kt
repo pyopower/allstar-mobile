@@ -52,10 +52,18 @@ class AudioEngine(private val callbacks: Callbacks) {
     }
 
     /** Called from the network thread with incoming ulaw (normally 160 bytes). */
-    fun onNetworkVoice(ulaw: ByteArray) {
+    fun onNetworkVoice(ulaw: ByteArray, ts16: Int = -1) {
         if (!running) return
         val pcm = Ulaw.decode(ulaw)
-        runCatching { cidDecoder.feed(pcm) }
+        runCatching {
+            // lost frames: feed silence in their place so the callsign decoder keeps its timing
+            if (ts16 >= 0 && lastTs16 >= 0) {
+                val gap = ((ts16 - lastTs16) and 0xffff) / FRAME_MS - 1
+                if (gap in 1..5) repeat(gap) { cidDecoder.feed(ShortArray(pcm.size)) }
+            }
+            if (ts16 >= 0) lastTs16 = ts16
+            cidDecoder.feed(pcm)
+        }
         if (!rxQueue.offer(pcm)) {
             rxQueue.poll()          // too much latency: drop the oldest frame
             rxQueue.offer(pcm)
@@ -63,6 +71,7 @@ class AudioEngine(private val callbacks: Callbacks) {
     }
 
     private val cidDecoder = HamCallerId.Decoder { callbacks.onCallsign(it) }
+    private var lastTs16 = -1
 
     /** Burst samples that replace the microphone audio of the next frames (Ham CallerID). */
     @Volatile private var inject: ShortArray? = null
@@ -246,6 +255,7 @@ class AudioEngine(private val callbacks: Callbacks) {
     companion object {
         const val RATE = 8000
         const val FRAME = 160          // 20 ms
+        private const val FRAME_MS = 20
         private const val PREFILL = 4      // 80 ms initial playout depth
         private const val MAX_TARGET = 14  // 280 ms
         private const val MAX_QUEUE = 30
