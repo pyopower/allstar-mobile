@@ -53,8 +53,8 @@
     <string name="details_loading">Chargement de l\'état en direct…</string>
     <string name="frequency">Fréquence</string>
     <string name="location">Lieu</string>
-    <string name="profiles">Mes nœuds</string>
-    <string name="add_profile">Ajouter un nœud</string>
+    <string name="profiles">Connexions</string>
+    <string name="add_profile">Ajouter</string>
     <string name="edit_profile">Modifier le nœud</string>
     <string name="f_name">Nom (facultatif)</string>
     <string name="f_host">Serveur (hôte ou IP)</string>
@@ -156,7 +156,7 @@
     <string name="account_hint">Pas besoin de nœud personnel : connectez-vous avec votre compte allstarlink.org et appelez tout nœud qui accepte les connexions d’applis (Web Transceiver). Le mot de passe est stocké chiffré sur ce téléphone.</string>
     <string name="f_portal_password">Mot de passe allstarlink.org</string>
     <string name="f_target_node">Nœud à appeler (facultatif, à choisir dans Nœuds)</string>
-    <string name="profile_account_sub">Compte AllStarLink · nœud %1$s</string>
+    <string name="profile_account_sub">Dernier nœud appelé : %1$s</string>
     <string name="call_node">Se connecter à ce nœud</string>
     <string name="pick_node_first">Choisissez dans l’onglet Nœuds le nœud à appeler</string>
     <string name="wt_no_echolink">Les nœuds EchoLink ne peuvent pas être appelés sans nœud personnel</string>
@@ -167,4 +167,17 @@
     <string name="cid_send_sub">Une courte salve de données au début et à la fin de chaque émission pour que les autres stations voient qui parle</string>
     <string name="ev_cid">Ham CallerID : %1$s</string>
     <string name="cid_last">Dernier entendu : %1$s · %2$s</string>
+    <string name="add_choose_title">Que voulez-vous ajouter ?</string>
+    <string name="choose_node_title">Mon nœud AllStar</string>
+    <string name="choose_node_sub">Gérez votre propre nœud et ses liaisons (utilisateur IAX de votre nœud)</string>
+    <string name="choose_account_title">Compte AllStarLink</string>
+    <string name="choose_account_sub">Entrez dans n\'importe quel nœud sans en avoir un (compte allstarlink.org)</string>
+    <string name="dlg_add_node">Ajouter mon nœud</string>
+    <string name="dlg_add_account">Ajouter un compte AllStarLink</string>
+    <string name="dlg_edit_account">Modifier le compte</string>
+    <string name="kind_node">Nœud personnel · IAX</string>
+    <string name="kind_account">Compte AllStarLink · sans nœud</string>
+    <string name="profile_node_sub">Nœud %1$s · %2$s</string>
+    <string name="delete_confirm">Supprimer « %1$s » ?</string>
+    <string name="node_hint">L\'utilisateur IAX de votre nœud (créé avec le script de configuration ou à la main). D\'ici vous gérez ses liaisons.</string>
 </resources>

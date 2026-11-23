@@ -53,8 +53,8 @@
     <string name="details_loading">Caricamento dello stato in tempo reale…</string>
     <string name="frequency">Frequenza</string>
     <string name="location">Località</string>
-    <string name="profiles">I miei nodi</string>
-    <string name="add_profile">Aggiungi nodo</string>
+    <string name="profiles">Connessioni</string>
+    <string name="add_profile">Aggiungi</string>
     <string name="edit_profile">Modifica nodo</string>
     <string name="f_name">Nome (facoltativo)</string>
     <string name="f_host">Server (host o IP)</string>
@@ -156,7 +156,7 @@
     <string name="account_hint">Non serve un nodo proprio: accedi con il tuo account allstarlink.org e chiama qualsiasi nodo che accetti connessioni da app (Web Transceiver). La password è salvata cifrata su questo telefono.</string>
     <string name="f_portal_password">Password allstarlink.org</string>
     <string name="f_target_node">Nodo da chiamare (facoltativo, si può scegliere in Nodi)</string>
-    <string name="profile_account_sub">Account AllStarLink · nodo %1$s</string>
+    <string name="profile_account_sub">Ultimo nodo chiamato: %1$s</string>
     <string name="call_node">Connetti a questo nodo</string>
     <string name="pick_node_first">Scegli nella scheda Nodi il nodo da chiamare</string>
     <string name="wt_no_echolink">I nodi EchoLink non si possono chiamare senza nodo proprio</string>
@@ -167,4 +167,17 @@
     <string name="cid_send_sub">Un breve burst di dati all’inizio e alla fine di ogni trasmissione perché le altre stazioni vedano chi parla</string>
     <string name="ev_cid">Ham CallerID: %1$s</string>
     <string name="cid_last">Ultimo sentito: %1$s · %2$s</string>
+    <string name="add_choose_title">Cosa vuoi aggiungere?</string>
+    <string name="choose_node_title">Il mio nodo AllStar</string>
+    <string name="choose_node_sub">Gestisci il tuo nodo e i suoi collegamenti (utente IAX del tuo nodo)</string>
+    <string name="choose_account_title">Account AllStarLink</string>
+    <string name="choose_account_sub">Entra in qualsiasi nodo senza averne uno (account allstarlink.org)</string>
+    <string name="dlg_add_node">Aggiungi il mio nodo</string>
+    <string name="dlg_add_account">Aggiungi account AllStarLink</string>
+    <string name="dlg_edit_account">Modifica account</string>
+    <string name="kind_node">Nodo proprio · IAX</string>
+    <string name="kind_account">Account AllStarLink · senza nodo</string>
+    <string name="profile_node_sub">Nodo %1$s · %2$s</string>
+    <string name="delete_confirm">Eliminare «%1$s»?</string>
+    <string name="node_hint">L\'utente IAX del tuo nodo (creato con lo script di configurazione o a mano). Da qui gestisci i suoi collegamenti.</string>
 </resources>

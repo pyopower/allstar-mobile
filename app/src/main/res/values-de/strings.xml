@@ -53,8 +53,8 @@
     <string name="details_loading">Live-Status wird geladen…</string>
     <string name="frequency">Frequenz</string>
     <string name="location">Standort</string>
-    <string name="profiles">Meine Nodes</string>
-    <string name="add_profile">Node hinzufügen</string>
+    <string name="profiles">Verbindungen</string>
+    <string name="add_profile">Hinzufügen</string>
     <string name="edit_profile">Node bearbeiten</string>
     <string name="f_name">Name (optional)</string>
     <string name="f_host">Server (Host oder IP)</string>
@@ -156,7 +156,7 @@
     <string name="account_hint">Kein eigener Node nötig: Melde dich mit deinem allstarlink.org-Konto an und rufe jeden Node an, der App-Verbindungen annimmt (Web Transceiver). Das Passwort wird verschlüsselt auf diesem Telefon gespeichert.</string>
     <string name="f_portal_password">allstarlink.org-Passwort</string>
     <string name="f_target_node">Anzurufender Node (optional, in Nodes wählbar)</string>
-    <string name="profile_account_sub">AllStarLink-Konto · Node %1$s</string>
+    <string name="profile_account_sub">Zuletzt angerufen: %1$s</string>
     <string name="call_node">Mit diesem Node verbinden</string>
     <string name="pick_node_first">Wähle im Tab Nodes den anzurufenden Node</string>
     <string name="wt_no_echolink">EchoLink-Nodes können ohne eigenen Node nicht angerufen werden</string>
@@ -167,4 +167,17 @@
     <string name="cid_send_sub">Ein kurzer Datenburst am Anfang und Ende jeder Aussendung, damit andere Stationen sehen, wer spricht</string>
     <string name="ev_cid">Ham CallerID: %1$s</string>
     <string name="cid_last">Zuletzt gehört: %1$s · %2$s</string>
+    <string name="add_choose_title">Was möchtest du hinzufügen?</string>
+    <string name="choose_node_title">Mein AllStar-Node</string>
+    <string name="choose_node_sub">Verwalte deinen eigenen Node und seine Links (IAX-Benutzer deines Nodes)</string>
+    <string name="choose_account_title">AllStarLink-Konto</string>
+    <string name="choose_account_sub">In jeden Node ohne eigenen Node (allstarlink.org-Konto)</string>
+    <string name="dlg_add_node">Meinen Node hinzufügen</string>
+    <string name="dlg_add_account">AllStarLink-Konto hinzufügen</string>
+    <string name="dlg_edit_account">Konto bearbeiten</string>
+    <string name="kind_node">Eigener Node · IAX</string>
+    <string name="kind_account">AllStarLink-Konto · ohne Node</string>
+    <string name="profile_node_sub">Node %1$s · %2$s</string>
+    <string name="delete_confirm">«%1$s» löschen?</string>
+    <string name="node_hint">Der IAX-Benutzer deines Nodes (mit dem Einrichtungsskript oder von Hand erstellt). Von hier verwaltest du seine Links.</string>
 </resources>

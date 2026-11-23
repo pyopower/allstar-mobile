@@ -53,8 +53,8 @@
     <string name="details_loading">A carregar o estado em direto…</string>
     <string name="frequency">Frequência</string>
     <string name="location">Local</string>
-    <string name="profiles">Os meus nós</string>
-    <string name="add_profile">Adicionar nó</string>
+    <string name="profiles">Ligações</string>
+    <string name="add_profile">Adicionar</string>
     <string name="edit_profile">Editar nó</string>
     <string name="f_name">Nome (opcional)</string>
     <string name="f_host">Servidor (host ou IP)</string>
@@ -156,7 +156,7 @@
     <string name="account_hint">Não precisa de nó próprio: entre com a sua conta allstarlink.org e chame qualquer nó que aceite ligações de apps (Web Transceiver). A palavra-passe é guardada cifrada neste telemóvel.</string>
     <string name="f_portal_password">Palavra-passe allstarlink.org</string>
     <string name="f_target_node">Nó a chamar (opcional, pode escolher em Nós)</string>
-    <string name="profile_account_sub">Conta AllStarLink · nó %1$s</string>
+    <string name="profile_account_sub">Último nó chamado: %1$s</string>
     <string name="call_node">Ligar a este nó</string>
     <string name="pick_node_first">Escolha no separador Nós o nó a chamar</string>
     <string name="wt_no_echolink">Os nós EchoLink não podem ser chamados sem nó próprio</string>
@@ -167,4 +167,17 @@
     <string name="cid_send_sub">Uma rajada curta de dados no início e no fim de cada transmissão para que outras estações vejam quem fala</string>
     <string name="ev_cid">Ham CallerID: %1$s</string>
     <string name="cid_last">Último ouvido: %1$s · %2$s</string>
+    <string name="add_choose_title">O que quer adicionar?</string>
+    <string name="choose_node_title">O meu nó AllStar</string>
+    <string name="choose_node_sub">Gere o seu próprio nó e as suas ligações (utilizador IAX do seu nó)</string>
+    <string name="choose_account_title">Conta AllStarLink</string>
+    <string name="choose_account_sub">Entre em qualquer nó sem ter um próprio (conta allstarlink.org)</string>
+    <string name="dlg_add_node">Adicionar o meu nó</string>
+    <string name="dlg_add_account">Adicionar conta AllStarLink</string>
+    <string name="dlg_edit_account">Editar conta</string>
+    <string name="kind_node">Nó próprio · IAX</string>
+    <string name="kind_account">Conta AllStarLink · sem nó</string>
+    <string name="profile_node_sub">Nó %1$s · %2$s</string>
+    <string name="delete_confirm">Apagar «%1$s»?</string>
+    <string name="node_hint">O utilizador IAX do seu nó (criado com o script de configuração ou à mão). Daqui gere as suas ligações.</string>
 </resources>

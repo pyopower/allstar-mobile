@@ -19,6 +19,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.draw.clip
+import androidx.compose.material.icons.filled.CellTower
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentCopy
@@ -79,7 +85,14 @@ fun SettingsScreen(
 ) {
     val prefs = Radio.prefs
     var editing by remember { mutableStateOf<Profile?>(null) }
-    if (editRequest != null) { editing = editRequest; onEditRequestHandled() }
+    var choosing by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf<Profile?>(null) }
+    if (editRequest != null) {
+        // an empty new profile (from the welcome screen) asks for the type first; a setup link opens directly
+        if (editRequest.host.isBlank() && !editRequest.account && profiles.none { it.id == editRequest.id }) choosing = true
+        else editing = editRequest
+        onEditRequestHandled()
+    }
     val ctx = LocalContext.current
     val clipboard = LocalClipboardManager.current
     var showManual by remember { mutableStateOf(false) }
@@ -89,7 +102,7 @@ fun SettingsScreen(
         Text(stringResource(R.string.tab_settings), style = MaterialTheme.typography.headlineMedium)
 
         SectionTitle(stringResource(R.string.profiles)) {
-            TextButton(onClick = { editing = Profile() }) {
+            TextButton(onClick = { choosing = true }) {
                 Icon(Icons.Default.Add, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.add_profile))
             }
         }
@@ -98,15 +111,20 @@ fun SettingsScreen(
             Card(onClick = { onSelectProfile(p) }, shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                 Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    NodeBadge(p.node.ifBlank { "ASL" }, highlight = active)
+                    KindIcon(p.account, active)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(p.title, style = MaterialTheme.typography.titleMedium)
-                        Text(if (p.account) stringResource(R.string.profile_account_sub, p.node.ifBlank { "—" }) else "${p.username}@${p.host}:${p.port}", style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(if (p.account) R.string.kind_account else R.string.kind_node),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (p.account) LocalRadioColors.current.star else MaterialTheme.colorScheme.primary)
+                        Text(if (p.account) stringResource(R.string.profile_account_sub, p.node.ifBlank { "—" })
+                            else stringResource(R.string.profile_node_sub, p.node, "${p.host}:${p.port}"),
+                            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (active) Icon(Icons.Default.CheckCircle, stringResource(R.string.active), tint = LocalRadioColors.current.rx)
                     IconButton(onClick = { editing = p }) { Icon(Icons.Default.Edit, stringResource(R.string.edit_profile)) }
+                    IconButton(onClick = { deleting = p }) { Icon(Icons.Default.Delete, stringResource(R.string.delete)) }
                 }
             }
         }
@@ -237,6 +255,21 @@ fun SettingsScreen(
         }
     }
 
+    if (choosing) {
+        AddChooser(onPick = { account -> choosing = false; editing = Profile(account = account) }, onDismiss = { choosing = false })
+    }
+    deleting?.let { p ->
+        AlertDialog(
+            onDismissRequest = { deleting = null },
+            title = { Text(stringResource(R.string.delete_confirm, p.title)) },
+            confirmButton = {
+                TextButton(onClick = { onDeleteProfile(p); deleting = null }) {
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { deleting = null }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
     editing?.let { p ->
         ProfileDialog(p, isNew = profiles.none { it.id == p.id },
             onSave = { onSaveProfile(it); editing = null },
@@ -247,6 +280,48 @@ fun SettingsScreen(
 
 @Composable
 private fun key(v: Int, content: @Composable () -> Unit) = androidx.compose.runtime.key(v) { content() }
+
+/** Antenna for an own node, person for an AllStarLink account. */
+@Composable
+private fun KindIcon(account: Boolean, active: Boolean) {
+    val rc = LocalRadioColors.current
+    val fg = when { active -> rc.rx; account -> rc.star; else -> MaterialTheme.colorScheme.primary }
+    Box(Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(fg.copy(alpha = 0.16f)), contentAlignment = Alignment.Center) {
+        Icon(if (account) Icons.Default.Person else Icons.Default.CellTower, null, tint = fg)
+    }
+}
+
+/** First step of «Add»: which kind of connection. */
+@Composable
+private fun AddChooser(onPick: (account: Boolean) -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.add_choose_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                ChooserCard(false, R.string.choose_node_title, R.string.choose_node_sub) { onPick(false) }
+                ChooserCard(true, R.string.choose_account_title, R.string.choose_account_sub) { onPick(true) }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+@Composable
+private fun ChooserCard(account: Boolean, title: Int, sub: Int, onClick: () -> Unit) {
+    Card(onClick = onClick, shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh)) {
+        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            KindIcon(account, false)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(stringResource(title), style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(sub), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    }
+}
 
 @Composable
 private fun SettingsCard(content: @Composable () -> Unit) {
@@ -278,21 +353,22 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
     var call by remember { mutableStateOf(p.callsign) }
     var allmon by remember { mutableStateOf(p.allmon) }
     var show by remember { mutableStateOf(false) }
-    var account by remember { mutableStateOf(p.account) }
+    val account = p.account
     val valid = if (account) call.isNotBlank() && secret.isNotEmpty() && node.all { it.isDigit() }
         else host.isNotBlank() && user.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
             (port.toIntOrNull() ?: 0) in 1..65535
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(if (isNew) R.string.add_profile else R.string.edit_profile)) },
+        title = { Text(stringResource(when {
+            account && isNew -> R.string.dlg_add_account
+            account -> R.string.dlg_edit_account
+            isNew -> R.string.dlg_add_node
+            else -> R.string.edit_profile
+        })) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    SegmentedButton(!account, { account = false }, SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.f_mode_node)) }
-                    SegmentedButton(account, { account = true }, SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.f_mode_account)) }
-                }
-                if (account) Text(stringResource(R.string.account_hint), style = MaterialTheme.typography.bodySmall,
+                Text(stringResource(if (account) R.string.account_hint else R.string.node_hint), style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (account) {
                     Field(call, { call = it.uppercase().trim() }, stringResource(R.string.f_callsign))

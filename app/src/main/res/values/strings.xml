@@ -61,8 +61,8 @@
     <string name="frequency">Frequency</string>
     <string name="location">Location</string>
 
-    <string name="profiles">My nodes</string>
-    <string name="add_profile">Add node</string>
+    <string name="profiles">Connections</string>
+    <string name="add_profile">Add</string>
     <string name="edit_profile">Edit node</string>
     <string name="f_name">Name (optional)</string>
     <string name="f_host">Server (host or IP)</string>
@@ -166,7 +166,7 @@
     <string name="account_hint">No node of your own needed: sign in with your allstarlink.org account and call any node that accepts app connections (Web Transceiver). The password is stored encrypted on this phone.</string>
     <string name="f_portal_password">allstarlink.org password</string>
     <string name="f_target_node">Node to call (optional, can be chosen in Nodes)</string>
-    <string name="profile_account_sub">AllStarLink account · node %1$s</string>
+    <string name="profile_account_sub">Last node called: %1$s</string>
     <string name="call_node">Connect to this node</string>
     <string name="pick_node_first">Choose a node to call in the Nodes tab</string>
     <string name="wt_no_echolink">EchoLink nodes cannot be called without a node of your own</string>
@@ -177,4 +177,17 @@
     <string name="cid_send_sub">A short data burst at the start and end of each transmission so other stations can show who is talking</string>
     <string name="ev_cid">Ham CallerID: %1$s</string>
     <string name="cid_last">Last heard: %1$s · %2$s</string>
+    <string name="add_choose_title">What do you want to add?</string>
+    <string name="choose_node_title">My AllStar node</string>
+    <string name="choose_node_sub">Manage your own node and its links (IAX user on your node)</string>
+    <string name="choose_account_title">AllStarLink account</string>
+    <string name="choose_account_sub">Get into any node without one of your own (allstarlink.org account)</string>
+    <string name="dlg_add_node">Add my node</string>
+    <string name="dlg_add_account">Add AllStarLink account</string>
+    <string name="dlg_edit_account">Edit account</string>
+    <string name="kind_node">Own node · IAX</string>
+    <string name="kind_account">AllStarLink account · no node</string>
+    <string name="profile_node_sub">Node %1$s · %2$s</string>
+    <string name="delete_confirm">Delete «%1$s»?</string>
+    <string name="node_hint">Your node\'s IAX user (created with the setup script or by hand). From here you manage its links.</string>
 </resources>
