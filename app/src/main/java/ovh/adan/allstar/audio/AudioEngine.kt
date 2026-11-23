@@ -24,6 +24,8 @@ class AudioEngine(private val callbacks: Callbacks) {
         /** Levels in dBFS (-90..0), roughly every 20 ms. */
         fun onRxLevel(db: Float)
         fun onTxLevel(db: Float)
+        /** A Ham CallerID burst was decoded in the received audio. */
+        fun onCallsign(callsign: String) {}
     }
 
     @Volatile var micGain = 1.0f
@@ -53,10 +55,32 @@ class AudioEngine(private val callbacks: Callbacks) {
     fun onNetworkVoice(ulaw: ByteArray) {
         if (!running) return
         val pcm = Ulaw.decode(ulaw)
+        runCatching { cidDecoder.feed(pcm) }
         if (!rxQueue.offer(pcm)) {
             rxQueue.poll()          // too much latency: drop the oldest frame
             rxQueue.offer(pcm)
         }
+    }
+
+    private val cidDecoder = HamCallerId.Decoder { callbacks.onCallsign(it) }
+
+    /** Burst samples that replace the microphone audio of the next frames (Ham CallerID). */
+    @Volatile private var inject: ShortArray? = null
+    private var injectPos = 0
+    @Volatile private var afterInject: (() -> Unit)? = null
+
+    /** Send [burst] in place of the microphone for the next ~150 ms. */
+    fun injectBurst(burst: ShortArray) { injectPos = 0; inject = burst }
+
+    /**
+     * Stop capturing once [burst] has been sent, then run [done] (used at the end of a
+     * transmission so the burst goes out before the unkey). Without a capture running,
+     * [done] runs at once.
+     */
+    fun finishWithBurst(burst: ShortArray, done: () -> Unit) {
+        if (!capturing) { done(); return }
+        afterInject = done
+        injectBurst(burst)
     }
 
     fun startCapture() {
@@ -178,10 +202,18 @@ class AudioEngine(private val callbacks: Callbacks) {
                     val s = if (step == 2) (raw[2 * i] + raw[2 * i + 1]) / 2 else raw[i].toInt()
                     pcm[i] = clip(s * g)
                 }
+                val inj = inject
+                if (inj != null) {
+                    for (i in 0 until FRAME) pcm[i] = if (injectPos + i < inj.size) inj[injectPos + i] else 0
+                    injectPos += FRAME
+                    if (injectPos >= inj.size) inject = null
+                }
                 callbacks.onTxLevel(levelDb(pcm))
                 callbacks.onMicFrame(Ulaw.encode(pcm, out).copyOf())
+                if (inj != null && inject == null) afterInject?.let { afterInject = null; capturing = false; it() }
             }
         } finally {
+            afterInject?.let { afterInject = null; inject = null; it() }
             runCatching { rec.stop() }
             rec.release()
             callbacks.onTxLevel(-90f)

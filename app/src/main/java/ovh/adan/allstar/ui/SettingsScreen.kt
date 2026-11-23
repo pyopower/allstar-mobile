@@ -156,6 +156,7 @@ fun SettingsScreen(
                     prefs.volumeKeyPtt = it; onSettingsChanged()
                 }
                 ToggleRow(stringResource(R.string.keep_screen), null, prefs.keepScreenOn) { prefs.keepScreenOn = it; onSettingsChanged() }
+                ToggleRow(stringResource(R.string.cid_send), stringResource(R.string.cid_send_sub), prefs.sendCallerId) { prefs.sendCallerId = it; onSettingsChanged() }
                 ToggleRow(stringResource(R.string.auto_connect), stringResource(R.string.auto_connect_sub), prefs.autoConnect) {
                     prefs.autoConnect = it; onSettingsChanged()
                 }

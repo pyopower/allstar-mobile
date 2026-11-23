@@ -172,4 +172,8 @@
     <string name="wt_on_this_node">Conectado a este nodo</string>
     <string name="wt_node">Nodo %1$s</string>
     <string name="connect_first_wt">Conéctate a un nodo</string>
+    <string name="cid_send">Enviar mi indicativo (Ham CallerID)</string>
+    <string name="cid_send_sub">Una ráfaga corta de datos al empezar y al terminar cada transmisión para que otras estaciones vean quién habla</string>
+    <string name="ev_cid">Ham CallerID: %1$s</string>
+    <string name="cid_last">Último oído: %1$s · %2$s</string>
 </resources>

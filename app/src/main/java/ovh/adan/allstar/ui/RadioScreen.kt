@@ -239,6 +239,8 @@ private fun StatusCard(state: RadioState) {
         state.conn == Conn.DISCONNECTED -> stringResource(R.string.status_disconnected) to rc.muted
         state.conn == Conn.CONNECTING -> stringResource(R.string.status_connecting) to rc.star
         state.tx -> stringResource(R.string.status_tx) to rc.tx
+        state.rx && state.cidCall != null && System.currentTimeMillis() - state.cidAt < 15_000 ->
+            stringResource(R.string.status_rx_from, state.cidCall) to rc.rx
         state.talkers.isNotEmpty() && !state.tx -> stringResource(R.string.status_rx_from, state.talkers.joinToString(", ") { Radio.describe(it) }) to rc.rx
         state.rx -> stringResource(R.string.status_rx) to rc.rx
         else -> stringResource(R.string.status_connected) to rc.idle
@@ -264,6 +266,11 @@ private fun StatusCard(state: RadioState) {
                     Text(stringResource(if (state.profile.account) R.string.wt_node else R.string.my_node, state.profile.node), style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
+            }
+            if (state.cidCall != null && state.conn == Conn.CONNECTED) {
+                Text(stringResource(R.string.cid_last, state.cidCall,
+                    java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(state.cidAt))),
+                    style = MaterialTheme.typography.bodyMedium, color = rc.rx)
             }
             if (state.reason != null && state.conn != Conn.CONNECTED) {
                 Text(state.reason, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)

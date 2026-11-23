@@ -163,4 +163,8 @@
     <string name="wt_on_this_node">Connecté à ce nœud</string>
     <string name="wt_node">Nœud %1$s</string>
     <string name="connect_first_wt">Connectez-vous à un nœud</string>
+    <string name="cid_send">Envoyer mon indicatif (Ham CallerID)</string>
+    <string name="cid_send_sub">Une courte salve de données au début et à la fin de chaque émission pour que les autres stations voient qui parle</string>
+    <string name="ev_cid">Ham CallerID : %1$s</string>
+    <string name="cid_last">Dernier entendu : %1$s · %2$s</string>
 </resources>

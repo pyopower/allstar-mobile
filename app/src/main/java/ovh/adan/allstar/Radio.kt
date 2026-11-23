@@ -44,6 +44,9 @@ data class RadioState(
     val links: List<LinkedNode> = emptyList(),
     /** Links talking to us right now (from Allmon3), if known. */
     val talkers: Set<String> = emptySet(),
+    /** Last callsign decoded from a Ham CallerID burst, and when. */
+    val cidCall: String? = null,
+    val cidAt: Long = 0L,
     val linksFromNode: Boolean = false,
     val events: List<LogEvent> = emptyList(),
 )
@@ -201,6 +204,11 @@ object Radio {
                 _state.update { it.copy(rxLevel = db, rx = if (remoteKeySeen) it.rx else isRxByLevel()) }
             }
             override fun onTxLevel(db: Float) { _state.update { it.copy(txLevel = db) } }
+            override fun onCallsign(callsign: String) {
+                val first = _state.value.cidCall != callsign || System.currentTimeMillis() - _state.value.cidAt > 5000
+                _state.update { it.copy(cidCall = callsign, cidAt = System.currentTimeMillis()) }
+                if (first) log(Lang.strings(app).getString(R.string.ev_cid, callsign), LogEvent.Kind.RX)
+            }
         }).also { it.micGain = prefs.micGain }
         audio = engine
         _state.update { it.copy(profile = profile) }
@@ -308,6 +316,10 @@ object Radio {
     private val REKEY_MS = 2000L
     private const val STABLE_MS = 8000L
 
+    /** Our Ham CallerID burst, if enabled and the profile has a callsign. */
+    private fun cidBurst(): ShortArray? =
+        if (prefs.sendCallerId) _state.value.profile?.callsign?.let { ovh.adan.allstar.audio.HamCallerId.modulate(it, 0.35f) } else null
+
     private fun isRxByLevel() = SystemClock.elapsedRealtime() - lastLoudRx < 1500
 
     // ----------------------------------------------------------------- PTT
@@ -317,6 +329,7 @@ object Radio {
         if (_state.value.conn != Conn.CONNECTED || _state.value.tx) return
         c.key()
         audio?.startCapture()
+        cidBurst()?.let { audio?.injectBurst(it) }
         _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime()) }
         txGuardJob?.cancel()
         txGuardJob = scope.launch {
@@ -330,12 +343,18 @@ object Radio {
     fun pttUp() {
         if (!_state.value.tx) return
         txGuardJob?.cancel()
-        audio?.stopCapture()
         val c = client
-        scope.launch {
-            delay(60)  // let the last captured frame go out before unkeying
-            c?.unkey()
+        val unkey = {
+            scope.launch {
+                delay(60)  // let the last captured frame go out before unkeying
+                c?.unkey()
+            }
+            Unit
         }
+        val burst = cidBurst()
+        val a = audio
+        if (burst != null && a != null) a.finishWithBurst(burst, unkey)   // callsign burst, then unkey
+        else { a?.stopCapture(); unkey() }
         val secs = (SystemClock.elapsedRealtime() - _state.value.txStartedAt) / 1000.0
         _state.update { it.copy(tx = false, txLevel = -90f) }
         if (secs >= 0.5) log(Lang.strings(app).getString(R.string.ev_tx, secs), LogEvent.Kind.TX)

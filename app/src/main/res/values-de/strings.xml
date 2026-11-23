@@ -163,4 +163,8 @@
     <string name="wt_on_this_node">Mit diesem Node verbunden</string>
     <string name="wt_node">Node %1$s</string>
     <string name="connect_first_wt">Verbinde dich mit einem Node</string>
+    <string name="cid_send">Mein Rufzeichen senden (Ham CallerID)</string>
+    <string name="cid_send_sub">Ein kurzer Datenburst am Anfang und Ende jeder Aussendung, damit andere Stationen sehen, wer spricht</string>
+    <string name="ev_cid">Ham CallerID: %1$s</string>
+    <string name="cid_last">Zuletzt gehört: %1$s · %2$s</string>
 </resources>
