@@ -17,19 +17,31 @@ data class Profile(
     val callsign: String = "",
     /** Allmon3 base URL (optional): used to show which link is talking. Empty = look for it next to the host. */
     val allmon: String = "",
+    /**
+     * AllStarLink account (Web Transceiver) profile: no own node; [callsign] + portal password
+     * in [secret], and [node] is the node to call (changed from the Nodes tab).
+     */
+    val account: Boolean = false,
 ) {
-    val isComplete get() = host.isNotBlank() && username.isNotBlank() && node.isNotBlank()
-    val title get() = name.ifBlank { "Node $node" }
+    val isComplete get() = if (account) callsign.isNotBlank() && secret.isNotEmpty() && node.isNotBlank()
+        else host.isNotBlank() && username.isNotBlank() && node.isNotBlank()
+    /** Account profile with the credentials filled in (the node can be chosen later). */
+    val accountReady get() = account && callsign.isNotBlank() && secret.isNotEmpty()
+    val title get() = name.ifBlank { if (account) callsign else "Node $node" }
 
-    fun toJson() = JSONObject().put("id", id).put("name", name).put("host", host).put("port", port)
-        .put("username", username).put("secret", secret).put("node", node).put("callsign", callsign).put("allmon", allmon)
+    fun toJson(): JSONObject = JSONObject().put("id", id).put("name", name).put("host", host).put("port", port)
+        .put("username", username).put("node", node).put("callsign", callsign).put("allmon", allmon)
+        .apply {
+            // the portal password is the user's account: keep it encrypted with an Android Keystore key
+            if (account) put("account", true).put("secretEnc", AslAccount.seal(secret)) else put("secret", secret)
+        }
 
     companion object {
         fun fromJson(o: JSONObject) = Profile(
             o.optString("id", UUID.randomUUID().toString()), o.optString("name"), o.optString("host"),
             o.optInt("port", 4569), o.optString("username"), o.optString("secret"),
             o.optString("node"), o.optString("callsign"), o.optString("allmon"),
-        )
+        ).let { p -> if (o.optBoolean("account")) p.copy(account = true, secret = AslAccount.open(o.optString("secretEnc"))) else p }
     }
 }
 
@@ -82,6 +94,11 @@ class Prefs(ctx: Context) {
     var startOnBoot: Boolean
         get() = sp.getBoolean("startOnBoot", false)
         set(v) { sp.edit().putBoolean("startOnBoot", v).apply() }
+
+    /** Random id sent with App Authentication token requests (AllStarLink uses it for rate limiting). */
+    val clientId: String get() = sp.getString("clientId", null) ?: UUID.randomUUID().toString().also {
+        sp.edit().putString("clientId", it).apply()
+    }
 
     var keepScreenOn: Boolean
         get() = sp.getBoolean("keepScreenOn", false)

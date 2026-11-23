@@ -1,6 +1,7 @@
 package ovh.adan.allstar.ui
 
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
@@ -97,11 +98,11 @@ fun SettingsScreen(
             Card(onClick = { onSelectProfile(p) }, shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
                 Row(Modifier.fillMaxWidth().padding(start = 14.dp, top = 8.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    NodeBadge(p.node, highlight = active)
+                    NodeBadge(p.node.ifBlank { "ASL" }, highlight = active)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
                         Text(p.title, style = MaterialTheme.typography.titleMedium)
-                        Text("${p.username}@${p.host}:${p.port}", style = MaterialTheme.typography.bodySmall,
+                        Text(if (p.account) stringResource(R.string.profile_account_sub, p.node.ifBlank { "—" }) else "${p.username}@${p.host}:${p.port}", style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (active) Icon(Icons.Default.CheckCircle, stringResource(R.string.active), tint = LocalRadioColors.current.rx)
@@ -264,6 +265,7 @@ private fun ToggleRow(title: String, sub: String?, value: Boolean, onChange: (Bo
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit, onDelete: () -> Unit, onDismiss: () -> Unit) {
     var name by remember { mutableStateOf(p.name) }
@@ -275,35 +277,52 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
     var call by remember { mutableStateOf(p.callsign) }
     var allmon by remember { mutableStateOf(p.allmon) }
     var show by remember { mutableStateOf(false) }
-    val valid = host.isNotBlank() && user.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
-        (port.toIntOrNull() ?: 0) in 1..65535
+    var account by remember { mutableStateOf(p.account) }
+    val valid = if (account) call.isNotBlank() && secret.isNotEmpty() && node.all { it.isDigit() }
+        else host.isNotBlank() && user.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
+            (port.toIntOrNull() ?: 0) in 1..65535
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(if (isNew) R.string.add_profile else R.string.edit_profile)) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Field(node, { node = it.filter(Char::isDigit) }, stringResource(R.string.f_node), KeyboardType.Number)
-                Field(call, { call = it.uppercase() }, stringResource(R.string.f_callsign))
-                Field(host, { host = it.trim() }, stringResource(R.string.f_host), KeyboardType.Uri)
-                Field(port, { port = it.filter(Char::isDigit) }, stringResource(R.string.f_port), KeyboardType.Number)
-                Field(user, { user = it.trim() }, stringResource(R.string.f_user))
-                OutlinedTextField(secret, { secret = it }, label = { Text(stringResource(R.string.f_secret)) }, singleLine = true,
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    SegmentedButton(!account, { account = false }, SegmentedButtonDefaults.itemShape(0, 2)) { Text(stringResource(R.string.f_mode_node)) }
+                    SegmentedButton(account, { account = true }, SegmentedButtonDefaults.itemShape(1, 2)) { Text(stringResource(R.string.f_mode_account)) }
+                }
+                if (account) Text(stringResource(R.string.account_hint), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (account) {
+                    Field(call, { call = it.uppercase().trim() }, stringResource(R.string.f_callsign))
+                } else {
+                    Field(node, { node = it.filter(Char::isDigit) }, stringResource(R.string.f_node), KeyboardType.Number)
+                    Field(call, { call = it.uppercase() }, stringResource(R.string.f_callsign))
+                    Field(host, { host = it.trim() }, stringResource(R.string.f_host), KeyboardType.Uri)
+                    Field(port, { port = it.filter(Char::isDigit) }, stringResource(R.string.f_port), KeyboardType.Number)
+                    Field(user, { user = it.trim() }, stringResource(R.string.f_user))
+                }
+                OutlinedTextField(secret, { secret = it }, label = { Text(stringResource(if (account) R.string.f_portal_password else R.string.f_secret)) }, singleLine = true,
                     visualTransformation = if (show) VisualTransformation.None else PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     trailingIcon = { IconButton(onClick = { show = !show }) {
                         Icon(if (show) Icons.Default.VisibilityOff else Icons.Default.Visibility, null) } },
                     modifier = Modifier.fillMaxWidth())
+                if (account) Field(node, { node = it.filter(Char::isDigit) }, stringResource(R.string.f_target_node), KeyboardType.Number)
                 Field(name, { name = it }, stringResource(R.string.f_name))
-                Field(allmon, { allmon = it.trim() }, stringResource(R.string.f_allmon), KeyboardType.Uri)
-                Text(stringResource(R.string.f_allmon_sub), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (!account) {
+                    Field(allmon, { allmon = it.trim() }, stringResource(R.string.f_allmon), KeyboardType.Uri)
+                    Text(stringResource(R.string.f_allmon_sub), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         },
         confirmButton = {
             TextButton(enabled = valid, onClick = {
-                onSave(p.copy(name = name.trim(), host = host, port = port.toInt(), username = user, secret = secret,
-                    node = node, callsign = call.trim(), allmon = allmon))
+                onSave(if (account) p.copy(name = name.trim(), account = true, secret = secret, node = node,
+                        callsign = call.trim(), host = "", username = "", allmon = "")
+                    else p.copy(name = name.trim(), host = host, port = port.toInt(), username = user, secret = secret,
+                        node = node, callsign = call.trim(), allmon = allmon, account = false))
             }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {

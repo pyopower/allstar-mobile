@@ -158,4 +158,18 @@
     <string name="exit_menu">Salir</string>
     <string name="minimize">Minimizar</string>
     <string name="quit">Cerrar la app</string>
+    <string name="wt_bad_login">Indicativo o contraseña de AllStarLink incorrectos</string>
+    <string name="wt_refused">El nodo no aceptó la llamada (puede que no admita conexiones sin nodo propio)</string>
+    <string name="f_mode_node">Mi nodo</string>
+    <string name="f_mode_account">Cuenta AllStarLink</string>
+    <string name="account_hint">No hace falta nodo propio: entra con tu cuenta de allstarlink.org y llama a cualquier nodo que acepte conexiones de apps (Web Transceiver). La contraseña se guarda cifrada en este teléfono.</string>
+    <string name="f_portal_password">Contraseña de allstarlink.org</string>
+    <string name="f_target_node">Nodo al que llamar (opcional, se puede elegir en Nodos)</string>
+    <string name="profile_account_sub">Cuenta AllStarLink · nodo %1$s</string>
+    <string name="call_node">Conectar a este nodo</string>
+    <string name="pick_node_first">Elige en la pestaña Nodos el nodo al que llamar</string>
+    <string name="wt_no_echolink">Los nodos EchoLink no se pueden llamar sin nodo propio</string>
+    <string name="wt_on_this_node">Conectado a este nodo</string>
+    <string name="wt_node">Nodo %1$s</string>
+    <string name="connect_first_wt">Conéctate a un nodo</string>
 </resources>

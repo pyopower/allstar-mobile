@@ -149,4 +149,18 @@
     <string name="exit_menu">Sair</string>
     <string name="minimize">Minimizar</string>
     <string name="quit">Fechar a app</string>
+    <string name="wt_bad_login">Indicativo ou palavra-passe AllStarLink incorretos</string>
+    <string name="wt_refused">O nó não aceitou a chamada (pode não permitir ligações sem nó próprio)</string>
+    <string name="f_mode_node">O meu nó</string>
+    <string name="f_mode_account">Conta AllStarLink</string>
+    <string name="account_hint">Não precisa de nó próprio: entre com a sua conta allstarlink.org e chame qualquer nó que aceite ligações de apps (Web Transceiver). A palavra-passe é guardada cifrada neste telemóvel.</string>
+    <string name="f_portal_password">Palavra-passe allstarlink.org</string>
+    <string name="f_target_node">Nó a chamar (opcional, pode escolher em Nós)</string>
+    <string name="profile_account_sub">Conta AllStarLink · nó %1$s</string>
+    <string name="call_node">Ligar a este nó</string>
+    <string name="pick_node_first">Escolha no separador Nós o nó a chamar</string>
+    <string name="wt_no_echolink">Os nós EchoLink não podem ser chamados sem nó próprio</string>
+    <string name="wt_on_this_node">Ligado a este nó</string>
+    <string name="wt_node">Nó %1$s</string>
+    <string name="connect_first_wt">Ligue-se a um nó</string>
 </resources>

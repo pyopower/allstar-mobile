@@ -149,4 +149,18 @@
     <string name="exit_menu">Beenden</string>
     <string name="minimize">Minimieren</string>
     <string name="quit">App beenden</string>
+    <string name="wt_bad_login">AllStarLink-Rufzeichen oder Passwort falsch</string>
+    <string name="wt_refused">Der Node hat den Anruf nicht angenommen (eventuell erlaubt er keine Verbindungen ohne eigenen Node)</string>
+    <string name="f_mode_node">Mein Node</string>
+    <string name="f_mode_account">AllStarLink-Konto</string>
+    <string name="account_hint">Kein eigener Node nötig: Melde dich mit deinem allstarlink.org-Konto an und rufe jeden Node an, der App-Verbindungen annimmt (Web Transceiver). Das Passwort wird verschlüsselt auf diesem Telefon gespeichert.</string>
+    <string name="f_portal_password">allstarlink.org-Passwort</string>
+    <string name="f_target_node">Anzurufender Node (optional, in Nodes wählbar)</string>
+    <string name="profile_account_sub">AllStarLink-Konto · Node %1$s</string>
+    <string name="call_node">Mit diesem Node verbinden</string>
+    <string name="pick_node_first">Wähle im Tab Nodes den anzurufenden Node</string>
+    <string name="wt_no_echolink">EchoLink-Nodes können ohne eigenen Node nicht angerufen werden</string>
+    <string name="wt_on_this_node">Mit diesem Node verbunden</string>
+    <string name="wt_node">Node %1$s</string>
+    <string name="connect_first_wt">Verbinde dich mit einem Node</string>
 </resources>

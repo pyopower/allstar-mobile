@@ -138,7 +138,7 @@ fun RadioScreen(
             }
             if (state.links.isEmpty()) item {
                 Text(
-                    if (state.conn == Conn.CONNECTED) stringResource(R.string.no_links) else stringResource(R.string.connect_first),
+                    if (state.conn == Conn.CONNECTED) stringResource(R.string.no_links) else stringResource(if (activeProfile.account) R.string.connect_first_wt else R.string.connect_first),
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp),
                 )
@@ -261,7 +261,7 @@ private fun StatusCard(state: RadioState) {
                     Text("%d:%02d".format(secs / 60, secs % 60), fontFamily = FontFamily.Monospace,
                         color = rc.tx, fontWeight = FontWeight.Bold)
                 } else if (state.profile != null) {
-                    Text(stringResource(R.string.my_node, state.profile.node), style = MaterialTheme.typography.labelMedium,
+                    Text(stringResource(if (state.profile.account) R.string.wt_node else R.string.my_node, state.profile.node), style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
@@ -369,7 +369,7 @@ private fun PttButton(state: RadioState, mode: PttMode) {
     val ring by pulse.animateFloat(1f, 1.12f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "ring")
 
     val hint = when {
-        !enabled -> stringResource(R.string.connect_first)
+        !enabled -> stringResource(if (state.profile?.account == true) R.string.connect_first_wt else R.string.connect_first)
         state.tx -> stringResource(if (mode == PttMode.HOLD) R.string.release_to_listen else R.string.tap_to_stop)
         else -> stringResource(if (mode == PttMode.HOLD) R.string.hold_to_talk else R.string.tap_to_talk)
     }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Hearing
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.LinkOff
@@ -274,7 +275,7 @@ private fun NodeRow(number: String, info: NodeInfo?, status: Status, fav: Boolea
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite: () -> Unit, onDismiss: () -> Unit,
-              onLinkRequested: () -> Unit = onDismiss) {
+              onLinkRequested: () -> Unit = onDismiss, onCallNode: ((String) -> Unit)? = null) {
     val rc = LocalRadioColors.current
     val info = Radio.directory.lookup(number)
     var details by remember { mutableStateOf<NodeDetails?>(null) }
@@ -339,7 +340,14 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
                 }
             }
 
-            if (!connected) {
+            if (onCallNode != null) {
+                // AllStarLink account profile: no own node, call this node directly
+                if (echoLink) Text(stringResource(R.string.wt_no_echolink), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                else if (isSelf && state.conn != Conn.DISCONNECTED) Pill(stringResource(R.string.wt_on_this_node), rc.rx)
+                else Button(onClick = { onCallNode(number) }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                    Icon(Icons.Default.Call, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.call_node))
+                }
+            } else if (!connected) {
                 Text(stringResource(R.string.connect_first), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else if (!isSelf) {
                 if (isLinked) {

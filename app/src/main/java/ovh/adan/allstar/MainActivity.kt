@@ -47,6 +47,7 @@ import ovh.adan.allstar.ui.SettingsScreen
 
 class MainActivity : ComponentActivity() {
     private var pendingConnect: Profile? = null
+    private var goToNodes: (() -> Unit)? = null
     /** Profile from a mobileasl:// setup link, waiting to be reviewed in Settings. */
     private var importRequest by mutableStateOf<Profile?>(null)
 
@@ -107,6 +108,12 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun connect(p: Profile) {
+        if (p.account && p.node.isBlank()) {
+            // nothing to call yet: pick a node in the Nodes tab
+            android.widget.Toast.makeText(this, R.string.pick_node_first, android.widget.Toast.LENGTH_LONG).show()
+            goToNodes?.invoke()
+            return
+        }
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             Radio.connect(p)
         } else {
@@ -131,6 +138,7 @@ class MainActivity : ComponentActivity() {
     private fun App() {
         val state by Radio.state.collectAsStateWithLifecycle()
         var tab by rememberSaveable { mutableIntStateOf(0) }
+        goToNodes = { tab = 1 }
         var version by remember { mutableIntStateOf(0) }       // bump to re-read prefs
         var openNode by remember { mutableStateOf<String?>(null) }
         var addRequest by remember { mutableStateOf<Profile?>(null) }
@@ -192,7 +200,14 @@ class MainActivity : ComponentActivity() {
 
         openNode?.let { n ->
             NodeSheet(n, state, n in favorites, onToggleFavorite = { toggleFav(n) }, onDismiss = { openNode = null },
-                onLinkRequested = { openNode = null; tab = 0 })
+                onLinkRequested = { openNode = null; tab = 0 },
+                onCallNode = if (active?.account == true) { num ->
+                    val p = active.copy(node = num)
+                    prefs.profiles = prefs.profiles.map { if (it.id == p.id) p else it }
+                    version++
+                    openNode = null; tab = 0
+                    connect(p)
+                } else null)
         }
     }
 }

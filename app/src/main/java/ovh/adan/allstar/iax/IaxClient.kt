@@ -25,6 +25,8 @@ class IaxClient(
     private val node: String,
     private val callerId: String,
     private val listener: Listener,
+    /** Calling number IE: "0" for iaxRpt-style logins; the target node for Web Transceiver calls. */
+    private val callingNumber: String = "0",
 ) {
     enum class State { IDLE, CONNECTING, AUTHENTICATING, CONNECTED, CLOSED }
 
@@ -54,6 +56,8 @@ class IaxClient(
     private var lastFullVoiceHigh = -1L
     private var needFullVoice = true
     private var authSent = false
+    /** The server accepted the call (ringing / dialplan running, not answered yet). */
+    private var accepted = false
 
     private class Pending(val seq: Int, val data: ByteArray, var sentAt: Long, var tries: Int = 1)
     private val pending = ArrayList<Pending>()
@@ -184,7 +188,8 @@ class IaxClient(
 
     private fun timers() = synchronized(lock) {
         val now = nowMs()
-        val timeout = if (state == State.CONNECTED) 35_000 else 10_000
+        // after ACCEPT the dialplan may take a while (WT: token check + announcement) before answering
+        val timeout = if (state == State.CONNECTED) 35_000 else if (accepted) 30_000 else 10_000
         if (now - lastRxMs > timeout) {
             close(if (state == State.CONNECTED) "Connection lost" else "No answer from server")
             return@synchronized
@@ -201,7 +206,7 @@ class IaxClient(
                 raw(p.data)
             }
         }
-        if (state == State.CONNECTED && now - lastPingMs > 20_000) {
+        if ((state == State.CONNECTED && now - lastPingMs > 20_000) || (state != State.CONNECTED && accepted && now - lastPingMs > 5_000)) {
             lastPingMs = now
             sendFull(FT_IAX, IAX_PING)
         }
@@ -296,7 +301,7 @@ class IaxClient(
                     close("Unsupported authentication method")
                 }
             }
-            IAX_ACCEPT -> ack(ts)
+            IAX_ACCEPT -> { ack(ts); accepted = true; lastPingMs = nowMs() }
             IAX_PING -> sendFull(FT_IAX, IAX_PONG, ByteArray(0), ts)
             IAX_LAGRQ -> sendFull(FT_IAX, IAX_LAGRP, ByteArray(0), ts)
             IAX_PONG, IAX_LAGRP -> ack(ts)
@@ -314,7 +319,7 @@ class IaxClient(
         val out = ByteArrayOutputStream()
         out.write(ie(IE_VERSION, byteArrayOf(0, 2)))
         out.write(ie(IE_CALLED_NUMBER, node))
-        out.write(ie(IE_CALLING_NUMBER, "0"))
+        out.write(ie(IE_CALLING_NUMBER, callingNumber))
         out.write(ie(IE_CALLING_NAME, callerId))
         out.write(ie(IE_USERNAME, username))
         out.write(ie(IE_CAPABILITY, int32(FMT_ULAW)))

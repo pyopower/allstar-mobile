@@ -159,4 +159,18 @@
     <string name="exit_menu">Exit</string>
     <string name="minimize">Minimize</string>
     <string name="quit">Quit the app</string>
+    <string name="wt_bad_login">AllStarLink callsign or password is wrong</string>
+    <string name="wt_refused">The node did not accept the call (it may not allow connections without a node of your own)</string>
+    <string name="f_mode_node">My node</string>
+    <string name="f_mode_account">AllStarLink account</string>
+    <string name="account_hint">No node of your own needed: sign in with your allstarlink.org account and call any node that accepts app connections (Web Transceiver). The password is stored encrypted on this phone.</string>
+    <string name="f_portal_password">allstarlink.org password</string>
+    <string name="f_target_node">Node to call (optional, can be chosen in Nodes)</string>
+    <string name="profile_account_sub">AllStarLink account · node %1$s</string>
+    <string name="call_node">Connect to this node</string>
+    <string name="pick_node_first">Choose a node to call in the Nodes tab</string>
+    <string name="wt_no_echolink">EchoLink nodes cannot be called without a node of your own</string>
+    <string name="wt_on_this_node">Connected to this node</string>
+    <string name="wt_node">Node %1$s</string>
+    <string name="connect_first_wt">Connect to a node</string>
 </resources>

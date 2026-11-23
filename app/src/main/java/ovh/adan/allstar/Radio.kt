@@ -17,6 +17,7 @@ import ovh.adan.allstar.data.LinkedNode
 import ovh.adan.allstar.data.NodeDirectory
 import ovh.adan.allstar.data.NodeStats
 import ovh.adan.allstar.data.Prefs
+import ovh.adan.allstar.data.AslAccount
 import ovh.adan.allstar.data.Profile
 import ovh.adan.allstar.iax.IaxClient
 import java.text.SimpleDateFormat
@@ -76,6 +77,12 @@ object Radio {
     /** This link reached CONNECTED at least once: a later drop is retried without limit (with backoff). */
     @Volatile private var sessionUp = false
     @Volatile private var reconnectAttempt = 0
+    /** Bumped on every dial: a slow token/DNS lookup from an older attempt is dropped. */
+    @Volatile private var dialGen = 0
+    /** Web Transceiver token format that worked (or to try first), and whether the other was tried. */
+    @Volatile private var wtFormat: AslAccount.Format? = null
+    @Volatile private var wtTriedOther = false
+    private var stableJob: Job? = null
     private var lastNetwork: android.net.Network? = null
     private var allmon: ovh.adan.allstar.data.AllmonWatcher? = null
 
@@ -138,15 +145,53 @@ object Radio {
     // ----------------------------------------------------------------- call control
 
     fun connect(profile: Profile, auto: Boolean = false) {
-        if (!auto) { retriesLeft = 0; retryJob?.cancel(); sessionUp = false; reconnectAttempt = 0 }
+        if (!auto) { retriesLeft = 0; retryJob?.cancel(); sessionUp = false; reconnectAttempt = 0; wtFormat = null; wtTriedOther = false }
         val reconnecting = auto && keepUp && _state.value.conn != Conn.DISCONNECTED
         if (client != null) { if (reconnecting) teardown() else disconnect() }
         keepUp = true
         prefs.activeProfileId = profile.id
         remoteKeySeen = false
         _state.update { RadioState(conn = Conn.CONNECTING, profile = profile, events = it.events) }
-        log(Lang.strings(app).getString(R.string.ev_connecting, profile.node, profile.host))
+        log(Lang.strings(app).getString(R.string.ev_connecting, profile.node, if (profile.account) "AllStarLink" else profile.host))
+        // while re-dialling the foreground service is still up (and may not be restarted from the background)
+        if (!reconnecting) LinkService.start(app)
+        val gen = ++dialGen
 
+        if (!profile.account) {
+            val caller = ("0" + profile.callsign.uppercase().filter { it.isLetterOrDigit() }).take(8)
+                .let { if (it.length > 1) it else "0" }
+            dial(profile, profile.host.trim(), profile.port, profile.username.trim(), profile.secret, profile.node.trim(), caller, "0")
+            return
+        }
+        // Web Transceiver: find the node, get a token from AllStarLink, then call the node's [allstar-public]
+        scope.launch(Dispatchers.IO) {
+            val r = runCatching {
+                val (host, port) = AslAccount.resolveNode(app, profile.node.trim())
+                val first = wtFormat ?: AslAccount.Format.LEGACY
+                val (fmt, name) = try {
+                    first to AslAccount.callerName(first, profile.callsign, profile.secret, prefs.clientId)
+                } catch (e: AslAccount.AuthException) {
+                    // legacy service retired / app auth not live: use the other one
+                    val other = if (first == AslAccount.Format.LEGACY) AslAccount.Format.APP else AslAccount.Format.LEGACY
+                    other to AslAccount.callerName(other, profile.callsign, profile.secret, prefs.clientId)
+                }
+                wtFormat = fmt
+                Triple(host, port, name)
+            }
+            if (gen != dialGen || !keepUp) return@launch
+            r.onSuccess { (host, port, name) ->
+                dial(profile.copy(host = host, port = port), host, port, AslAccount.IAX_USER, AslAccount.IAX_SECRET,
+                    AslAccount.IAX_EXTEN, name, profile.node.trim())
+            }.onFailure { e ->
+                val bad = e is AslAccount.AuthException && e.badCredentials
+                val reason = if (bad) Lang.strings(app).getString(R.string.wt_bad_login) else (e.message ?: e.javaClass.simpleName)
+                onIaxState(IaxClient.State.CLOSED, reason, rejected = bad)
+            }
+        }
+    }
+
+    private fun dial(profile: Profile, host: String, port: Int, user: String, secret: String, called: String,
+                     callerName: String, callingNumber: String) {
         val engine = AudioEngine(object : AudioEngine.Callbacks {
             override fun onMicFrame(ulaw: ByteArray) { client?.sendVoice(ulaw) }
             override fun onRxLevel(db: Float) {
@@ -158,12 +203,10 @@ object Radio {
             override fun onTxLevel(db: Float) { _state.update { it.copy(txLevel = db) } }
         }).also { it.micGain = prefs.micGain }
         audio = engine
+        _state.update { it.copy(profile = profile) }
 
-        val caller = ("0" + profile.callsign.uppercase().filter { it.isLetterOrDigit() }).take(8)
-            .let { if (it.length > 1) it else "0" }
         var self: IaxClient? = null
-        client = IaxClient(profile.host.trim(), profile.port, profile.username.trim(), profile.secret,
-            profile.node.trim(), caller, object : IaxClient.Listener {
+        client = IaxClient(host, port, user, secret, called, callerName, object : IaxClient.Listener {
                 override fun onState(state: IaxClient.State, reason: String?) {
                     if (client === self) onIaxState(state, reason, self?.rejected == true)  // ignore a replaced call
                 }
@@ -179,9 +222,7 @@ object Radio {
                     NodeStats.parseLinkList(text)?.let { l -> setLinks(l, fromNode = true); return }
                     onNodeText(text)
                 }
-            }).also { self = it }
-        // while re-dialling the foreground service is still up (and may not be restarted from the background)
-        if (!reconnecting) LinkService.start(app)
+            }, callingNumber).also { self = it }
         client!!.start()
     }
 
@@ -197,7 +238,10 @@ object Radio {
     private fun onIaxState(s: IaxClient.State, reason: String?, rejected: Boolean) {
         when (s) {
             IaxClient.State.CONNECTED -> {
-                retriesLeft = 0; sessionUp = true; reconnectAttempt = 0
+                retriesLeft = 0
+                // a node that answers and hangs up at once (WT token refused) must not count as a working link
+                stableJob?.cancel()
+                stableJob = scope.launch { delay(STABLE_MS); if (_state.value.conn == Conn.CONNECTED) { sessionUp = true; reconnectAttempt = 0; wtTriedOther = false } }
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
                 log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
@@ -210,8 +254,28 @@ object Radio {
                 startPolling()
             }
             IaxClient.State.CLOSED -> {
+                stableJob?.cancel()
                 allmon?.stop(); allmon = null
-                val wasUp = _state.value.conn != Conn.DISCONNECTED
+                val st = _state.value
+                val p0 = st.profile
+                val quickDrop = st.conn != Conn.CONNECTED || System.currentTimeMillis() - st.connectedAt < STABLE_MS
+                if (p0 != null && p0.account && keepUp && quickDrop && client != null && !sessionUp) {
+                    // the node ended the call before rpt ran: token not accepted in this format
+                    client = null; audio?.stop(); audio = null; pollJob?.cancel(); txGuardJob?.cancel()
+                    if (!wtTriedOther) {
+                        wtTriedOther = true
+                        wtFormat = if (wtFormat == AslAccount.Format.APP) AslAccount.Format.LEGACY else AslAccount.Format.APP
+                        connect(p0, auto = true)
+                        return
+                    }
+                    keepUp = false
+                    log(Lang.strings(app).getString(R.string.ev_failed, Lang.strings(app).getString(R.string.wt_refused)), LogEvent.Kind.ERROR)
+                    _state.update { it.copy(conn = Conn.DISCONNECTED, reason = Lang.strings(app).getString(R.string.wt_refused),
+                        rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
+                    LinkService.stop(app)
+                    return
+                }
+                val wasUp = st.conn != Conn.DISCONNECTED
                 client = null
                 audio?.stop(); audio = null
                 pollJob?.cancel()
@@ -242,6 +306,7 @@ object Radio {
     }
 
     private val REKEY_MS = 2000L
+    private const val STABLE_MS = 8000L
 
     private fun isRxByLevel() = SystemClock.elapsedRealtime() - lastLoudRx < 1500
 

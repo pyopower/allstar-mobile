@@ -149,4 +149,18 @@
     <string name="exit_menu">Esci</string>
     <string name="minimize">Riduci a icona</string>
     <string name="quit">Chiudi l\'app</string>
+    <string name="wt_bad_login">Nominativo o password AllStarLink errati</string>
+    <string name="wt_refused">Il nodo non ha accettato la chiamata (potrebbe non ammettere connessioni senza nodo proprio)</string>
+    <string name="f_mode_node">Il mio nodo</string>
+    <string name="f_mode_account">Account AllStarLink</string>
+    <string name="account_hint">Non serve un nodo proprio: accedi con il tuo account allstarlink.org e chiama qualsiasi nodo che accetti connessioni da app (Web Transceiver). La password è salvata cifrata su questo telefono.</string>
+    <string name="f_portal_password">Password allstarlink.org</string>
+    <string name="f_target_node">Nodo da chiamare (facoltativo, si può scegliere in Nodi)</string>
+    <string name="profile_account_sub">Account AllStarLink · nodo %1$s</string>
+    <string name="call_node">Connetti a questo nodo</string>
+    <string name="pick_node_first">Scegli nella scheda Nodi il nodo da chiamare</string>
+    <string name="wt_no_echolink">I nodi EchoLink non si possono chiamare senza nodo proprio</string>
+    <string name="wt_on_this_node">Connesso a questo nodo</string>
+    <string name="wt_node">Nodo %1$s</string>
+    <string name="connect_first_wt">Connettiti a un nodo</string>
 </resources>

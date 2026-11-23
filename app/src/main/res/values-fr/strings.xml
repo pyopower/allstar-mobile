@@ -149,4 +149,18 @@
     <string name="exit_menu">Quitter</string>
     <string name="minimize">Réduire</string>
     <string name="quit">Fermer l\'app</string>
+    <string name="wt_bad_login">Indicatif ou mot de passe AllStarLink incorrect</string>
+    <string name="wt_refused">Le nœud n’a pas accepté l’appel (il n’autorise peut-être pas les connexions sans nœud personnel)</string>
+    <string name="f_mode_node">Mon nœud</string>
+    <string name="f_mode_account">Compte AllStarLink</string>
+    <string name="account_hint">Pas besoin de nœud personnel : connectez-vous avec votre compte allstarlink.org et appelez tout nœud qui accepte les connexions d’applis (Web Transceiver). Le mot de passe est stocké chiffré sur ce téléphone.</string>
+    <string name="f_portal_password">Mot de passe allstarlink.org</string>
+    <string name="f_target_node">Nœud à appeler (facultatif, à choisir dans Nœuds)</string>
+    <string name="profile_account_sub">Compte AllStarLink · nœud %1$s</string>
+    <string name="call_node">Se connecter à ce nœud</string>
+    <string name="pick_node_first">Choisissez dans l’onglet Nœuds le nœud à appeler</string>
+    <string name="wt_no_echolink">Les nœuds EchoLink ne peuvent pas être appelés sans nœud personnel</string>
+    <string name="wt_on_this_node">Connecté à ce nœud</string>
+    <string name="wt_node">Nœud %1$s</string>
+    <string name="connect_first_wt">Connectez-vous à un nœud</string>
 </resources>
