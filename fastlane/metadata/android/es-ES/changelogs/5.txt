@@ -1,0 +1,3 @@
+• Reconexión automática si se corta el enlace (y al cambiar entre wifi y datos)
+• Nuevo: entra en AllStarLink con tu cuenta de allstarlink.org, sin nodo propio, y llama a cualquier nodo que lo permita
+• Nuevo: Ham CallerID: envía tu indicativo en una ráfaga corta al pulsar y soltar, y muestra quién habla

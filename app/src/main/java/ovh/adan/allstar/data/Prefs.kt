@@ -102,7 +102,7 @@ class Prefs(ctx: Context) {
 
     /** Send our callsign as a Ham CallerID burst at the start and end of each transmission. */
     var sendCallerId: Boolean
-        get() = sp.getBoolean("sendCallerId", false)
+        get() = sp.getBoolean("sendCallerId", true)
         set(v) { sp.edit().putBoolean("sendCallerId", v).apply() }
 
     var keepScreenOn: Boolean

@@ -1,0 +1,3 @@
+• Reconnexion automatique si la liaison tombe (et en passant du Wi-Fi aux données)
+• Nouveau : connectez-vous à AllStarLink avec votre compte allstarlink.org, sans nœud personnel, et appelez tout nœud qui l’autorise
+• Nouveau : Ham CallerID (optionnel) : envoie votre indicatif dans une courte salve au début et à la fin, et affiche qui parle
