@@ -11,7 +11,7 @@ import kotlin.math.sin
  * ~150 ms Bell 202 AFSK burst at the start and end of a transmission, so whoever receives the
  * audio (another app, a node, a bridge) can show who is talking even on analog links.
  *
- * Frame: mark idle 10 ms · 0x55 0x55 0x55 · sync 0x2D 0xD4 · (version<<4 | type) · length ·
+ * Frame: mark idle 20 ms · 0x55 0x55 0x55 · sync 0x2D 0xD4 · (version<<4 | type) · length ·
  * payload · CRC-16/CCITT-FALSE · 2 mark bits. Bytes are asynchronous (start 0, 8 bits LSB
  * first, stop 1). Mark = 1200 Hz, space = 2200 Hz, 1200 baud, continuous phase, 8 kHz.
  * Must stay byte-identical with hamcid/burst.py.
@@ -26,6 +26,8 @@ object HamCallerId {
     private const val VERSION = 0
     const val TYPE_CALLSIGN = 1
     private const val MAX_LEN = 32
+    /** 20 ms of pure 1200 Hz before the preamble: stream decoders in nodes/bridges key on it. */
+    private const val LEAD_BITS = 24
 
     fun crc16(data: ByteArray): Int {
         var crc = 0xFFFF
@@ -51,7 +53,7 @@ object HamCallerId {
         val cs = cleanCallsign(callsign)
         if (cs.isEmpty()) return null
         val bits = ArrayList<Int>()
-        repeat(12) { bits.add(1) }
+        repeat(LEAD_BITS) { bits.add(1) }
         for (b in frame(cs, TYPE_CALLSIGN)) {
             val v = b.toInt() and 0xff
             bits.add(0); for (i in 0 until 8) bits.add((v shr i) and 1); bits.add(1)
