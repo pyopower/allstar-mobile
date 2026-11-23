@@ -1,0 +1,3 @@
+• L’indicatif est obligatoire pour les connexions à votre nœud (Ham CallerID en a besoin)
+• Avertissement à la connexion si une ancienne connexion n’a pas d’indicatif
+• Améliorations de stabilité

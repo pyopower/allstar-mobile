@@ -1,0 +1,3 @@
+• El indicativo es obligatorio en las conexiones a tu nodo (lo necesita Ham CallerID)
+• Aviso al conectar si una conexión antigua no tiene indicativo
+• Mejoras de estabilidad

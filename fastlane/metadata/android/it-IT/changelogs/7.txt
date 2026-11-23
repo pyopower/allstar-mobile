@@ -1,0 +1,3 @@
+• Il nominativo è obbligatorio nelle connessioni al tuo nodo (serve a Ham CallerID)
+• Avviso alla connessione se una connessione vecchia non ha il nominativo
+• Miglioramenti di stabilità

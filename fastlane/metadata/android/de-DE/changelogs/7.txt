@@ -1,0 +1,3 @@
+• Rufzeichen ist jetzt Pflicht bei Verbindungen zum eigenen Node (Ham CallerID braucht es)
+• Hinweis beim Verbinden, wenn eine ältere Verbindung kein Rufzeichen hat
+• Stabilitätsverbesserungen

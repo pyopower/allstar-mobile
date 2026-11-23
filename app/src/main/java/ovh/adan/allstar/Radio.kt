@@ -319,6 +319,7 @@ object Radio {
 
     private val REKEY_MS = 2000L
     private const val STABLE_MS = 8000L
+    private const val START_PREROLL = 2400   // 300 ms at 8 kHz
 
     /** Our Ham CallerID burst, if enabled and the profile has a callsign. */
     private fun cidBurst(): ShortArray? =
@@ -333,7 +334,10 @@ object Radio {
         if (_state.value.conn != Conn.CONNECTED || _state.value.tx) return
         c.key()
         audio?.startCapture()
-        cidBurst()?.let { audio?.injectBurst(it) }
+        // 300 ms of silence before the start burst: the first frames of a transmission reach the node
+        // bunched up (the microphone starts in bursts) and its jitter buffer drops some of them,
+        // which wrecked the start burst. The voice captured meanwhile follows the burst.
+        cidBurst()?.let { audio?.injectBurst(ShortArray(START_PREROLL) + it) }
         _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime()) }
         txGuardJob?.cancel()
         txGuardJob = scope.launch {

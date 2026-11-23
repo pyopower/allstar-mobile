@@ -1,0 +1,3 @@
+• Callsign is now required for connections to your own node (Ham CallerID needs it)
+• Warning when connecting if an older connection has no callsign
+• Stability improvements
