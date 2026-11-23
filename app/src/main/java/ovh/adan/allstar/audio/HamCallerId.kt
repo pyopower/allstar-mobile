@@ -152,7 +152,7 @@ object HamCallerId {
         private var sinceScan = 0
         private val recent = ArrayDeque<Long>()
 
-        fun feed(pcm: ShortArray) {
+        @Synchronized fun feed(pcm: ShortArray) {
             val n = pcm.size
             if (n >= buf.size) return
             System.arraycopy(buf, n, buf, 0, buf.size - n)
@@ -161,6 +161,15 @@ object HamCallerId {
             total += n
             sinceScan += n
             if (sinceScan < 800 || filled < 1600) return
+            scan()
+        }
+
+        /** Scan what arrived since the last scan (call when the audio stops). */
+        @Synchronized fun flush() {
+            if (sinceScan > 0 && filled >= 1000) scan()
+        }
+
+        private fun scan() {
             sinceScan = 0
             val win = if (filled == buf.size) buf.copyOf() else buf.copyOfRange(buf.size - filled, buf.size)
             val base = total - win.size

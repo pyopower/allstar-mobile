@@ -69,18 +69,26 @@ class AudioEngine(private val callbacks: Callbacks) {
     private var injectPos = 0
     @Volatile private var afterInject: (() -> Unit)? = null
 
-    /** Send [burst] in place of the microphone for the next ~150 ms. */
+    /**
+     * Microphone frames held back while the start burst goes out: the voice is not lost, it
+     * follows the burst (the whole transmission is delayed by the burst length, ~150 ms).
+     */
+    private val delayed = java.util.ArrayDeque<ShortArray>()
+    /** End burst waiting for the delayed voice to drain. */
+    @Volatile private var endBurst: ShortArray? = null
+    private var sendingEnd = false
+
+    /** Send [burst] first; the microphone audio captured meanwhile follows it. */
     fun injectBurst(burst: ShortArray) { injectPos = 0; inject = burst }
 
     /**
-     * Stop capturing once [burst] has been sent, then run [done] (used at the end of a
-     * transmission so the burst goes out before the unkey). Without a capture running,
-     * [done] runs at once.
+     * End of transmission: send the voice still held back, then [burst], stop capturing and
+     * run [done] (the unkey). Without a capture running, [done] runs at once.
      */
     fun finishWithBurst(burst: ShortArray, done: () -> Unit) {
         if (!capturing) { done(); return }
         afterInject = done
-        injectBurst(burst)
+        endBurst = burst
     }
 
     fun startCapture() {
@@ -129,7 +137,11 @@ class AudioEngine(private val callbacks: Callbacks) {
                     if (rxQueue.size < target) {
                         // keep the track fed with silence while (re)filling the buffer
                         track.write(silence, 0, FRAME)
-                        if (++quietFrames % 5 == 0) callbacks.onRxLevel(-90f)
+                        if (++quietFrames % 5 == 0) {
+                            callbacks.onRxLevel(-90f)
+                            // the transmission ended: scan the tail (an end-of-TX callsign burst)
+                            runCatching { cidDecoder.flush() }
+                        }
                         continue
                     }
                     buffering = false
@@ -202,17 +214,28 @@ class AudioEngine(private val callbacks: Callbacks) {
                     val s = if (step == 2) (raw[2 * i] + raw[2 * i + 1]) / 2 else raw[i].toInt()
                     pcm[i] = clip(s * g)
                 }
-                val inj = inject
-                if (inj != null) {
-                    for (i in 0 until FRAME) pcm[i] = if (injectPos + i < inj.size) inj[injectPos + i] else 0
-                    injectPos += FRAME
-                    if (injectPos >= inj.size) inject = null
+                val ending = endBurst != null || sendingEnd
+                // after PTT release the microphone is no longer part of the transmission
+                if (!ending) delayed.addLast(pcm.copyOf())
+                if (endBurst != null && inject == null && delayed.isEmpty()) {
+                    injectPos = 0; inject = endBurst; endBurst = null; sendingEnd = true
                 }
-                callbacks.onTxLevel(levelDb(pcm))
-                callbacks.onMicFrame(Ulaw.encode(pcm, out).copyOf())
-                if (inj != null && inject == null) afterInject?.let { afterInject = null; capturing = false; it() }
+                val inj = inject
+                val frame: ShortArray = if (inj != null) {
+                    ShortArray(FRAME) { i -> if (injectPos + i < inj.size) inj[injectPos + i] else 0 }.also {
+                        injectPos += FRAME
+                        if (injectPos >= inj.size) inject = null
+                    }
+                } else delayed.pollFirst() ?: ShortArray(FRAME)
+                callbacks.onTxLevel(levelDb(frame))
+                callbacks.onMicFrame(Ulaw.encode(frame, out).copyOf())
+                if (sendingEnd && inject == null) {
+                    sendingEnd = false
+                    afterInject?.let { afterInject = null; capturing = false; it() }
+                }
             }
         } finally {
+            delayed.clear(); endBurst = null; sendingEnd = false
             afterInject?.let { afterInject = null; inject = null; it() }
             runCatching { rec.stop() }
             rec.release()

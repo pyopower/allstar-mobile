@@ -205,6 +205,7 @@ object Radio {
             }
             override fun onTxLevel(db: Float) { _state.update { it.copy(txLevel = db) } }
             override fun onCallsign(callsign: String) {
+                android.util.Log.i("HamCallerId", "decoded $callsign")
                 val first = _state.value.cidCall != callsign || System.currentTimeMillis() - _state.value.cidAt > 5000
                 _state.update { it.copy(cidCall = callsign, cidAt = System.currentTimeMillis()) }
                 if (first) log(Lang.strings(app).getString(R.string.ev_cid, callsign), LogEvent.Kind.RX)
