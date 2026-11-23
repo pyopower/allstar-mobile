@@ -1,0 +1,3 @@
+• Automatic reconnection when the link drops (and when switching Wi-Fi/mobile data)
+• New: sign in with your allstarlink.org account, no node of your own needed, and call any node that allows it
+• New: Ham CallerID (optional): sends your callsign in a short burst at key-up and release, and shows who is talking
