@@ -1,0 +1,3 @@
+• Religação automática se a ligação cair (e ao mudar entre Wi-Fi e dados)
+• Novo: entre no AllStarLink com a sua conta allstarlink.org, sem nó próprio, e ligue a qualquer nó que o permita
+• Novo: Ham CallerID: envia o seu indicativo numa rajada curta ao carregar e soltar, e mostra quem fala

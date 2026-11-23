@@ -1,0 +1,3 @@
+• Automatische Wiederverbindung bei Abbruch (auch beim Wechsel WLAN/Mobilfunk)
+• Neu: mit dem allstarlink.org-Konto anmelden, ohne eigenen Node, und jeden Node anrufen, der es erlaubt
+• Neu: Ham CallerID: sendet dein Rufzeichen als kurzen Burst beim Drücken und Loslassen und zeigt, wer spricht

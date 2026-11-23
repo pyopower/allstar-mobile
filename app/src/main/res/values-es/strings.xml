@@ -189,4 +189,5 @@
     <string name="profile_node_sub">Nodo %1$s · %2$s</string>
     <string name="delete_confirm">¿Borrar «%1$s»?</string>
     <string name="node_hint">El usuario IAX de tu nodo (creado con el script de configuración o a mano). Desde aquí gestionas sus enlaces.</string>
+    <string name="ev_no_callsign">Esta conexión no tiene indicativo: no se puede enviar Ham CallerID (edítala en Ajustes)</string>
 </resources>

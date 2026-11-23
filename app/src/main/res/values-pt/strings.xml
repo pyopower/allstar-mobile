@@ -180,4 +180,5 @@
     <string name="profile_node_sub">Nó %1$s · %2$s</string>
     <string name="delete_confirm">Apagar «%1$s»?</string>
     <string name="node_hint">O utilizador IAX do seu nó (criado com o script de configuração ou à mão). Daqui gere as suas ligações.</string>
+    <string name="ev_no_callsign">Esta ligação não tem indicativo: não é possível enviar o Ham CallerID (edite-a nas Definições)</string>
 </resources>

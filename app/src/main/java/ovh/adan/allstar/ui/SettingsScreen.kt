@@ -355,7 +355,7 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
     var show by remember { mutableStateOf(false) }
     val account = p.account
     val valid = if (account) call.isNotBlank() && secret.isNotEmpty() && node.all { it.isDigit() }
-        else host.isNotBlank() && user.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
+        else host.isNotBlank() && user.isNotBlank() && call.isNotBlank() && node.isNotBlank() && node.all { it.isDigit() } &&
             (port.toIntOrNull() ?: 0) in 1..65535
 
     AlertDialog(

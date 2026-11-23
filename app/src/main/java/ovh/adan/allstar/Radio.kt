@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import ovh.adan.allstar.audio.AudioEngine
+import ovh.adan.allstar.audio.HamCallerId
 import ovh.adan.allstar.data.LinkedNode
 import ovh.adan.allstar.data.NodeDirectory
 import ovh.adan.allstar.data.NodeStats
@@ -161,6 +162,8 @@ object Radio {
         val gen = ++dialGen
 
         if (!profile.account) {
+            if (prefs.sendCallerId && HamCallerId.cleanCallsign(profile.callsign).isEmpty())
+                log(Lang.strings(app).getString(R.string.ev_no_callsign), LogEvent.Kind.ERROR)
             val caller = ("0" + profile.callsign.uppercase().filter { it.isLetterOrDigit() }).take(8)
                 .let { if (it.length > 1) it else "0" }
             dial(profile, profile.host.trim(), profile.port, profile.username.trim(), profile.secret, profile.node.trim(), caller, "0")

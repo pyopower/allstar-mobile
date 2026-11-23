@@ -180,4 +180,5 @@
     <string name="profile_node_sub">Nœud %1$s · %2$s</string>
     <string name="delete_confirm">Supprimer « %1$s » ?</string>
     <string name="node_hint">L\'utilisateur IAX de votre nœud (créé avec le script de configuration ou à la main). D\'ici vous gérez ses liaisons.</string>
+    <string name="ev_no_callsign">Cette connexion n\'a pas d\'indicatif : impossible d\'envoyer Ham CallerID (modifiez-la dans les Réglages)</string>
 </resources>
