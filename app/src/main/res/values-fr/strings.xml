@@ -83,6 +83,8 @@
     <string name="ev_connected">Connecté au nœud %1$s</string>
     <string name="ev_disconnected">Déconnecté</string>
     <string name="ev_failed">Échec de la connexion : %1$s</string>
+    <string name="ev_reconnecting">Reconnexion dans %1$d s…</string>
+    <string name="ev_network_changed">Changement de réseau : reconnexion</string>
     <string name="ev_rx">Réception audio</string>
     <string name="ev_tx">Émis %1$.1f s</string>
     <string name="ev_tot">Durée maximale d\'émission atteinte</string>

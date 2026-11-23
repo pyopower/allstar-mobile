@@ -265,7 +265,7 @@ private fun StatusCard(state: RadioState) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            if (state.reason != null && state.conn == Conn.DISCONNECTED) {
+            if (state.reason != null && state.conn != Conn.CONNECTED) {
                 Text(state.reason, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {

@@ -71,6 +71,12 @@ object Radio {
     /** Automatic (re)connection attempts left after a failure: used by auto-connect and start-on-boot. */
     @Volatile private var retriesLeft = 0
     private var retryJob: Job? = null
+    /** The user wants the link up (set by connect, cleared by disconnect): drops are then retried. */
+    @Volatile private var keepUp = false
+    /** This link reached CONNECTED at least once: a later drop is retried without limit (with backoff). */
+    @Volatile private var sessionUp = false
+    @Volatile private var reconnectAttempt = 0
+    private var lastNetwork: android.net.Network? = null
     private var allmon: ovh.adan.allstar.data.AllmonWatcher? = null
 
     /** Connect without user interaction (app start / phone boot), retrying a few times if the network is not ready. */
@@ -88,13 +94,54 @@ object Radio {
         prefs = Prefs(app)
         directory = NodeDirectory(app)
         scope.launch { directory.load() }
+        watchNetwork()
+    }
+
+    /** Re-dial at once when the phone changes network (Wi-Fi <-> mobile) or one comes back. */
+    private fun watchNetwork() {
+        val cm = app.getSystemService(android.net.ConnectivityManager::class.java) ?: return
+        runCatching {
+            cm.registerDefaultNetworkCallback(object : android.net.ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    val prev = lastNetwork
+                    lastNetwork = network
+                    if (prev == null || prev == network || !keepUp) return
+                    val p = _state.value.profile ?: return
+                    scope.launch {
+                        delay(1500)  // let the new network settle (DNS, routes)
+                        if (!keepUp) return@launch
+                        when {
+                            retryJob?.isActive == true -> { retryJob?.cancel(); reconnectAttempt = 0; connect(p, auto = true) }
+                            _state.value.conn == Conn.CONNECTED -> {
+                                log(Lang.strings(app).getString(R.string.ev_network_changed))
+                                teardown()
+                                connect(p, auto = true)
+                            }
+                        }
+                    }
+                }
+            })
+        }
+    }
+
+    /** Drop the current call quietly (no state change, service kept): used before re-dialling. */
+    private fun teardown() {
+        allmon?.stop(); allmon = null
+        pttUp()
+        pollJob?.cancel(); pollJob = null
+        txGuardJob?.cancel()
+        val c = client; client = null
+        c?.hangup()
+        audio?.stop(); audio = null
     }
 
     // ----------------------------------------------------------------- call control
 
     fun connect(profile: Profile, auto: Boolean = false) {
-        if (!auto) { retriesLeft = 0; retryJob?.cancel() }
-        if (_state.value.conn != Conn.DISCONNECTED) disconnect()
+        if (!auto) { retriesLeft = 0; retryJob?.cancel(); sessionUp = false; reconnectAttempt = 0 }
+        val reconnecting = auto && keepUp && _state.value.conn != Conn.DISCONNECTED
+        if (client != null) { if (reconnecting) teardown() else disconnect() }
+        keepUp = true
         prefs.activeProfileId = profile.id
         remoteKeySeen = false
         _state.update { RadioState(conn = Conn.CONNECTING, profile = profile, events = it.events) }
@@ -114,9 +161,12 @@ object Radio {
 
         val caller = ("0" + profile.callsign.uppercase().filter { it.isLetterOrDigit() }).take(8)
             .let { if (it.length > 1) it else "0" }
+        var self: IaxClient? = null
         client = IaxClient(profile.host.trim(), profile.port, profile.username.trim(), profile.secret,
             profile.node.trim(), caller, object : IaxClient.Listener {
-                override fun onState(state: IaxClient.State, reason: String?) = onIaxState(state, reason)
+                override fun onState(state: IaxClient.State, reason: String?) {
+                    if (client === self) onIaxState(state, reason, self?.rejected == true)  // ignore a replaced call
+                }
                 override fun onVoice(ulaw: ByteArray) { audio?.onNetworkVoice(ulaw) }
                 override fun onRemoteKey(keyed: Boolean) {
                     remoteKeySeen = true
@@ -129,27 +179,25 @@ object Radio {
                     NodeStats.parseLinkList(text)?.let { l -> setLinks(l, fromNode = true); return }
                     onNodeText(text)
                 }
-            })
-        LinkService.start(app)
+            }).also { self = it }
+        // while re-dialling the foreground service is still up (and may not be restarted from the background)
+        if (!reconnecting) LinkService.start(app)
         client!!.start()
     }
 
     fun disconnect() {
+        keepUp = false; sessionUp = false
         retriesLeft = 0; retryJob?.cancel()
-        allmon?.stop(); allmon = null
-        pttUp()
-        pollJob?.cancel(); pollJob = null
-        client?.hangup(); client = null
-        audio?.stop(); audio = null
+        teardown()
         if (_state.value.conn != Conn.DISCONNECTED) log(Lang.strings(app).getString(R.string.ev_disconnected))
         _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList(), talkers = emptySet()) }
         LinkService.stop(app)
     }
 
-    private fun onIaxState(s: IaxClient.State, reason: String?) {
+    private fun onIaxState(s: IaxClient.State, reason: String?, rejected: Boolean) {
         when (s) {
             IaxClient.State.CONNECTED -> {
-                retriesLeft = 0
+                retriesLeft = 0; sessionUp = true; reconnectAttempt = 0
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
                 log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
@@ -172,13 +220,22 @@ object Radio {
                     if (reason != null) log(Lang.strings(app).getString(R.string.ev_failed, reason), LogEvent.Kind.ERROR)
                     else log(Lang.strings(app).getString(R.string.ev_disconnected))
                 }
-                _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
                 val p = _state.value.profile
-                if (reason != null && retriesLeft > 0 && p != null) {
+                // a link that was up is re-dialled for as long as the user wants it (5, 10, 20, 30, 60 s…);
+                // a first connection only by auto-connect / boot (4 tries); never after a rejection (credentials)
+                val retry = reason != null && keepUp && p != null && !rejected && (sessionUp || retriesLeft > 0)
+                if (retry) {
                     // keep the foreground service: it cannot be restarted from the background
-                    retriesLeft--
-                    retryJob = scope.launch { delay(20_000); if (_state.value.conn == Conn.DISCONNECTED) connect(p, auto = true) }
-                } else LinkService.stop(app)
+                    val wait = if (sessionUp) listOf(5, 10, 20, 30, 60)[reconnectAttempt.coerceAtMost(4)] else 20
+                    if (sessionUp) reconnectAttempt++ else retriesLeft--
+                    _state.update { it.copy(conn = Conn.CONNECTING, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
+                    log(Lang.strings(app).getString(R.string.ev_reconnecting, wait))
+                    retryJob = scope.launch { delay(wait * 1000L); if (keepUp && client == null) connect(p!!, auto = true) }
+                } else {
+                    keepUp = false; sessionUp = false
+                    _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
+                    LinkService.stop(app)
+                }
             }
             else -> {}
         }

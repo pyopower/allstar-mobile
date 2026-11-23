@@ -83,6 +83,8 @@
     <string name="ev_connected">Ligado ao nó %1$s</string>
     <string name="ev_disconnected">Desligado</string>
     <string name="ev_failed">Falha na ligação: %1$s</string>
+    <string name="ev_reconnecting">A religar dentro de %1$d s…</string>
+    <string name="ev_network_changed">Mudança de rede: a religar</string>
     <string name="ev_rx">A receber áudio</string>
     <string name="ev_tx">Transmitido %1$.1f s</string>
     <string name="ev_tot">Tempo máximo de transmissão atingido</string>

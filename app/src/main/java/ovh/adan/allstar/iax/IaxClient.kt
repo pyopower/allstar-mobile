@@ -47,6 +47,8 @@ class IaxClient(
     private var iseq = 0
     private val startNs = System.nanoTime()
     private var lastRxMs = 0L
+    /** The server refused the call (bad credentials, unknown user): not worth retrying. */
+    @Volatile var rejected = false; private set
     private var lastPingMs = 0L
     private var lastVoiceTs = -1L
     private var lastFullVoiceHigh = -1L
@@ -301,6 +303,7 @@ class IaxClient(
             IAX_REJECT, IAX_HANGUP -> {
                 ack(ts)
                 val cause = ies[IE_CAUSE]?.let { String(it) }
+                if (sub == IAX_REJECT) rejected = true
                 close(cause ?: if (sub == IAX_REJECT) "Rejected" else "Hung up")
             }
             else -> ack(ts)
