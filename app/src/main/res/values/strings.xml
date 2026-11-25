@@ -191,4 +191,13 @@
     <string name="delete_confirm">Delete «%1$s»?</string>
     <string name="node_hint">Your node\'s IAX user (created with the setup script or by hand). From here you manage its links.</string>
     <string name="ev_no_callsign">No callsign in this connection: Ham CallerID cannot be sent (edit the connection in Settings)</string>
+    <string name="link_perm">Permanent</string>
+    <string name="link_perm_sub">The node relinks it by itself if it drops. Uses %1$s: it must be defined in the node’s rpt.conf.</string>
+    <string name="link_tx_perm">Link permanently</string>
+    <string name="unlink_perm">Unlink permanent link</string>
+    <string name="ev_link_perm">Linking %1$s permanently</string>
+    <string name="ev_unlink_perm">Unlinking permanent link %1$s</string>
+    <string name="f_perm_link">Permanent link code</string>
+    <string name="f_perm_unlink">Permanent unlink code</string>
+    <string name="f_perm_sub">Stock ASL3 has no codes for permanent links. Add them to [functions] in rpt.conf, for example 813 = ilink,13 and 811 = ilink,11. A permanent link ignores *1. Leave them empty to hide the option.</string>
 </resources>

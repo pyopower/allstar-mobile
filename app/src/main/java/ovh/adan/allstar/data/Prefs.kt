@@ -22,6 +22,9 @@ data class Profile(
      * in [secret], and [node] is the node to call (changed from the Nodes tab).
      */
     val account: Boolean = false,
+    /** DTMF codes for permanent links (ilink 13 / ilink 11). Stock ASL3 has none: the sysop adds them to rpt.conf. */
+    val permLink: String = DEFAULT_PERM_LINK,
+    val permUnlink: String = DEFAULT_PERM_UNLINK,
 ) {
     val isComplete get() = if (account) callsign.isNotBlank() && secret.isNotEmpty() && node.isNotBlank()
         else host.isNotBlank() && username.isNotBlank() && node.isNotBlank()
@@ -31,16 +34,22 @@ data class Profile(
 
     fun toJson(): JSONObject = JSONObject().put("id", id).put("name", name).put("host", host).put("port", port)
         .put("username", username).put("node", node).put("callsign", callsign).put("allmon", allmon)
+        .put("permLink", permLink).put("permUnlink", permUnlink)
         .apply {
             // the portal password is the user's account: keep it encrypted with an Android Keystore key
             if (account) put("account", true).put("secretEnc", AslAccount.seal(secret)) else put("secret", secret)
         }
 
     companion object {
+        /** The codes the ASL3 rpt.conf template suggests (commented out there). */
+        const val DEFAULT_PERM_LINK = "*813"
+        const val DEFAULT_PERM_UNLINK = "*811"
+
         fun fromJson(o: JSONObject) = Profile(
             o.optString("id", UUID.randomUUID().toString()), o.optString("name"), o.optString("host"),
             o.optInt("port", 4569), o.optString("username"), o.optString("secret"),
             o.optString("node"), o.optString("callsign"), o.optString("allmon"),
+            permLink = o.optString("permLink", DEFAULT_PERM_LINK), permUnlink = o.optString("permUnlink", DEFAULT_PERM_UNLINK),
         ).let { p -> if (o.optBoolean("account")) p.copy(account = true, secret = AslAccount.open(o.optString("secretEnc"))) else p }
     }
 }
@@ -66,6 +75,10 @@ class Prefs(ctx: Context) {
     var favorites: Set<String>
         get() = sp.getStringSet("favorites", emptySet())!!.toSet()
         set(v) { sp.edit().putStringSet("favorites", v).apply() }
+
+    /** Nodes this app linked permanently, per profile: unlinking them needs the permanent code. */
+    fun permanentLinks(profileId: String): Set<String> = sp.getStringSet("perm_$profileId", emptySet())!!.toSet()
+    fun setPermanentLinks(profileId: String, nodes: Set<String>) { sp.edit().putStringSet("perm_$profileId", nodes).apply() }
 
     var recents: List<String>
         get() = sp.getString("recents", "")!!.split(',').filter { it.isNotBlank() }

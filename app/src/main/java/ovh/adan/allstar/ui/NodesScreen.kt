@@ -1,6 +1,7 @@
 package ovh.adan.allstar.ui
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -31,6 +32,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -350,15 +352,36 @@ fun NodeSheet(number: String, state: RadioState, fav: Boolean, onToggleFavorite:
             } else if (!connected) {
                 Text(stringResource(R.string.connect_first), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else if (!isSelf) {
+                val canPerm = !echoLink && !state.profile?.permLink.isNullOrBlank()
+                val canPermOff = !state.profile?.permUnlink.isNullOrBlank()
                 if (isLinked) {
+                    val perm = Radio.isPermanent(number)
                     Button(onClick = { Radio.unlinkNode(number); onDismiss() }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                        Icon(Icons.Default.LinkOff, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.unlink))
+                        Icon(Icons.Default.LinkOff, null); Spacer(Modifier.width(8.dp))
+                        Text(stringResource(if (perm) R.string.unlink_perm else R.string.unlink))
+                    }
+                    // linked permanently from elsewhere (Allmon3, startup_macro): the app can't tell, so offer it
+                    if (!perm && canPermOff) OutlinedButton(onClick = { Radio.unlinkNode(number, permanent = true); onDismiss() },
+                        modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                        Icon(Icons.Default.LinkOff, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.unlink_perm))
                     }
                 } else {
-                    Button(onClick = { Radio.linkNode(number); onLinkRequested() }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                        Icon(Icons.Default.Link, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.link_tx))
+                    var permanent by remember(number) { mutableStateOf(false) }
+                    if (canPerm) Row(Modifier.fillMaxWidth().clickable { permanent = !permanent },
+                        verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(permanent, { permanent = it })
+                        Column(Modifier.weight(1f)) {
+                            Text(stringResource(R.string.link_perm), style = MaterialTheme.typography.bodyLarge)
+                            Text(stringResource(R.string.link_perm_sub, state.profile?.permLink.orEmpty()),
+                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                     }
-                    OutlinedButton(onClick = { Radio.linkNode(number, monitorOnly = true); onLinkRequested() },
+                    Button(onClick = { Radio.linkNode(number, permanent = permanent); onLinkRequested() },
+                        modifier = Modifier.fillMaxWidth().height(52.dp)) {
+                        Icon(Icons.Default.Link, null); Spacer(Modifier.width(8.dp))
+                        Text(stringResource(if (permanent) R.string.link_tx_perm else R.string.link_tx))
+                    }
+                    if (!permanent) OutlinedButton(onClick = { Radio.linkNode(number, monitorOnly = true); onLinkRequested() },
                         modifier = Modifier.fillMaxWidth().height(52.dp)) {
                         Icon(Icons.Default.Hearing, null); Spacer(Modifier.width(8.dp)); Text(stringResource(R.string.link_monitor))
                     }

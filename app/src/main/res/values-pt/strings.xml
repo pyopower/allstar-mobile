@@ -181,4 +181,13 @@
     <string name="delete_confirm">Apagar «%1$s»?</string>
     <string name="node_hint">O utilizador IAX do seu nó (criado com o script de configuração ou à mão). Daqui gere as suas ligações.</string>
     <string name="ev_no_callsign">Esta ligação não tem indicativo: não é possível enviar o Ham CallerID (edite-a nas Definições)</string>
+    <string name="link_perm">Permanente</string>
+    <string name="link_perm_sub">O nó volta a ligá-lo sozinho se a ligação cair. Usa %1$s, que tem de estar definido no rpt.conf do nó.</string>
+    <string name="link_tx_perm">Ligar permanentemente</string>
+    <string name="unlink_perm">Desligar ligação permanente</string>
+    <string name="ev_link_perm">A ligar %1$s permanentemente</string>
+    <string name="ev_unlink_perm">A desligar a ligação permanente %1$s</string>
+    <string name="f_perm_link">Código ligação permanente</string>
+    <string name="f_perm_unlink">Código desligar permanente</string>
+    <string name="f_perm_sub">O ASL3 não traz códigos para ligações permanentes. Adicione-os em [functions] do rpt.conf, por exemplo 813 = ilink,13 e 811 = ilink,11. Uma ligação permanente ignora *1. Deixe vazio para ocultar a opção.</string>
 </resources>

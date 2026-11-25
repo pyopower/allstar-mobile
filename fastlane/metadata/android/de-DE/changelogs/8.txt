@@ -1,0 +1,2 @@
+• Permanente Verbindungen: beim Verbinden «Permanent» ankreuzen (*813), trennen mit *811; beide Codes in den Einstellungen änderbar
+• Dein privater Node zeigt jetzt seine Verbindungen und lässt sie trennen

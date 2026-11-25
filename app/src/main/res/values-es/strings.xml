@@ -190,4 +190,13 @@
     <string name="delete_confirm">¿Borrar «%1$s»?</string>
     <string name="node_hint">El usuario IAX de tu nodo (creado con el script de configuración o a mano). Desde aquí gestionas sus enlaces.</string>
     <string name="ev_no_callsign">Esta conexión no tiene indicativo: no se puede enviar Ham CallerID (edítala en Ajustes)</string>
+    <string name="link_perm">Permanente</string>
+    <string name="link_perm_sub">El nodo lo vuelve a enlazar solo si se cae. Usa %1$s, que tiene que estar definido en el rpt.conf del nodo.</string>
+    <string name="link_tx_perm">Enlazar permanente</string>
+    <string name="unlink_perm">Desenlazar permanente</string>
+    <string name="ev_link_perm">Enlazando %1$s de forma permanente</string>
+    <string name="ev_unlink_perm">Desenlazando el enlace permanente %1$s</string>
+    <string name="f_perm_link">Código enlazar permanente</string>
+    <string name="f_perm_unlink">Código desenlazar permanente</string>
+    <string name="f_perm_sub">ASL3 no trae de serie códigos para enlaces permanentes. Añádelos en [functions] del rpt.conf, por ejemplo 813 = ilink,13 y 811 = ilink,11. Un enlace permanente no se suelta con *1. Déjalos vacíos para ocultar la opción.</string>
 </resources>

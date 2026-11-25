@@ -181,4 +181,13 @@
     <string name="delete_confirm">Supprimer « %1$s » ?</string>
     <string name="node_hint">L\'utilisateur IAX de votre nœud (créé avec le script de configuration ou à la main). D\'ici vous gérez ses liaisons.</string>
     <string name="ev_no_callsign">Cette connexion n\'a pas d\'indicatif : impossible d\'envoyer Ham CallerID (modifiez-la dans les Réglages)</string>
+    <string name="link_perm">Permanent</string>
+    <string name="link_perm_sub">Le nœud le reconnecte tout seul si la liaison tombe. Utilise %1$s, qui doit être défini dans le rpt.conf du nœud.</string>
+    <string name="link_tx_perm">Connecter en permanence</string>
+    <string name="unlink_perm">Déconnecter la liaison permanente</string>
+    <string name="ev_link_perm">Connexion permanente de %1$s</string>
+    <string name="ev_unlink_perm">Déconnexion de la liaison permanente %1$s</string>
+    <string name="f_perm_link">Code liaison permanente</string>
+    <string name="f_perm_unlink">Code déconnexion permanente</string>
+    <string name="f_perm_sub">ASL3 n’a pas de codes pour les liaisons permanentes par défaut. Ajoutez-les dans [functions] du rpt.conf, par exemple 813 = ilink,13 et 811 = ilink,11. Une liaison permanente ignore *1. Laissez vide pour masquer l’option.</string>
 </resources>

@@ -12,8 +12,8 @@ android {
         applicationId = "ovh.adan.allstar"
         minSdk = 24
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.0.1"
+        versionCode = 8
+        versionName = "1.0.2"
     }
 
     // Release signing: keystore and passwords live outside the repo

@@ -1,0 +1,2 @@
+• Collegamenti permanenti: spunta «Permanente» quando colleghi (*813) e scollega con *811; i due codici si cambiano in Impostazioni
+• Il tuo nodo privato ora mostra i suoi collegamenti e permette di scollegarli

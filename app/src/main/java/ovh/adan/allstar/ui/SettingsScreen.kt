@@ -352,6 +352,8 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
     var node by remember { mutableStateOf(p.node) }
     var call by remember { mutableStateOf(p.callsign) }
     var allmon by remember { mutableStateOf(p.allmon) }
+    var permLink by remember { mutableStateOf(p.permLink) }
+    var permUnlink by remember { mutableStateOf(p.permUnlink) }
     var show by remember { mutableStateOf(false) }
     val account = p.account
     val valid = if (account) call.isNotBlank() && secret.isNotEmpty() && node.all { it.isDigit() }
@@ -391,6 +393,12 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
                     Field(allmon, { allmon = it.trim() }, stringResource(R.string.f_allmon), KeyboardType.Uri)
                     Text(stringResource(R.string.f_allmon_sub), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(Modifier.weight(1f)) { Field(permLink, { permLink = it.filter { c -> c in DTMF_CHARS } }, stringResource(R.string.f_perm_link), KeyboardType.Phone) }
+                        Box(Modifier.weight(1f)) { Field(permUnlink, { permUnlink = it.filter { c -> c in DTMF_CHARS } }, stringResource(R.string.f_perm_unlink), KeyboardType.Phone) }
+                    }
+                    Text(stringResource(R.string.f_perm_sub), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         },
@@ -399,7 +407,8 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
                 onSave(if (account) p.copy(name = name.trim(), account = true, secret = secret, node = node,
                         callsign = call.trim(), host = "", username = "", allmon = "")
                     else p.copy(name = name.trim(), host = host, port = port.toInt(), username = user, secret = secret,
-                        node = node, callsign = call.trim(), allmon = allmon, account = false))
+                        node = node, callsign = call.trim(), allmon = allmon, account = false,
+                        permLink = permLink, permUnlink = permUnlink))
             }) { Text(stringResource(R.string.save)) }
         },
         dismissButton = {
@@ -410,6 +419,8 @@ private fun ProfileDialog(p: Profile, isNew: Boolean, onSave: (Profile) -> Unit,
         },
     )
 }
+
+private const val DTMF_CHARS = "0123456789*#ABCD"
 
 @Composable
 private fun Field(v: String, on: (String) -> Unit, label: String, type: KeyboardType = KeyboardType.Text) {

@@ -1,0 +1,2 @@
+• Permanent links: tick «Permanent» when linking (*813) and unlink with *811; both codes can be changed in Settings
+• Your own private node now shows its links and lets you unlink them

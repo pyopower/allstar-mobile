@@ -181,4 +181,13 @@
     <string name="delete_confirm">«%1$s» löschen?</string>
     <string name="node_hint">Der IAX-Benutzer deines Nodes (mit dem Einrichtungsskript oder von Hand erstellt). Von hier verwaltest du seine Links.</string>
     <string name="ev_no_callsign">Diese Verbindung hat kein Rufzeichen: Ham CallerID kann nicht gesendet werden (in den Einstellungen bearbeiten)</string>
+    <string name="link_perm">Dauerhaft</string>
+    <string name="link_perm_sub">Der Node verbindet sich von selbst neu, wenn die Verbindung abbricht. Verwendet %1$s; der Code muss in der rpt.conf des Nodes definiert sein.</string>
+    <string name="link_tx_perm">Dauerhaft verbinden</string>
+    <string name="unlink_perm">Dauerhafte Verbindung trennen</string>
+    <string name="ev_link_perm">Verbinde %1$s dauerhaft</string>
+    <string name="ev_unlink_perm">Trenne dauerhafte Verbindung %1$s</string>
+    <string name="f_perm_link">Code dauerhaft verbinden</string>
+    <string name="f_perm_unlink">Code dauerhaft trennen</string>
+    <string name="f_perm_sub">ASL3 hat standardmäßig keine Codes für dauerhafte Verbindungen. Trage sie unter [functions] in der rpt.conf ein, z. B. 813 = ilink,13 und 811 = ilink,11. Eine dauerhafte Verbindung ignoriert *1. Leer lassen, um die Option auszublenden.</string>
 </resources>

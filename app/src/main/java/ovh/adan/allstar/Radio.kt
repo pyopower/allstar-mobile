@@ -391,6 +391,17 @@ object Radio {
         val m = Regex("^T\\s+\\d+\\s+([A-Z_]+)(?:,(.*))?").find(text.trim()) ?: return
         val (what, arg) = m.destructured
         when (what) {
+            // "T <node> CONNECTED,<node>,<peer>": the node tells us a link came up or went down.
+            // Private nodes have no public stats, so this is the only way we learn about it.
+            "CONNECTED", "DISCONNECTED", "REMDISC" -> {
+                val peer = arg.split(',').map { it.trim() }.lastOrNull { it.isNotEmpty() }
+                if (peer == null || peer == _state.value.profile?.node) return
+                val cur = _state.value.links
+                val next = if (what == "CONNECTED") cur.filter { it.number != peer } + LinkedNode(peer)
+                           else cur.filter { it.number != peer }
+                if (what != "CONNECTED") markPermanent(peer, false)
+                setLinks(next, fromNode = false, announce = true)
+            }
             "STATS_TIME" -> arg.trim().toLongOrNull()?.let { t ->
                 notify(Lang.strings(app).getString(R.string.ev_node_time,
                     SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date(t * 1000))))
@@ -406,13 +417,35 @@ object Radio {
         }
     }
 
-    fun linkNode(n: String, monitorOnly: Boolean = false) {
+    fun linkNode(n: String, monitorOnly: Boolean = false, permanent: Boolean = false) {
         addRecent(n)
+        val code = _state.value.profile?.permLink.orEmpty()
+        if (permanent && !monitorOnly && code.isNotBlank()) {
+            markPermanent(n, true)
+            dtmf(code + n, Lang.strings(app).getString(R.string.ev_link_perm, describe(n)))
+            return
+        }
+        markPermanent(n, false)
         dtmf((if (monitorOnly) "*2" else "*3") + n,
             Lang.strings(app).getString(if (monitorOnly) R.string.ev_monitor else R.string.ev_link, describe(n)))
     }
 
-    fun unlinkNode(n: String) = dtmf("*1$n", Lang.strings(app).getString(R.string.ev_unlink, describe(n)))
+    /** A permanent link ignores *1 (ilink 1): it needs the profile's permanent unlink code (ilink 11). */
+    fun unlinkNode(n: String, permanent: Boolean = isPermanent(n)) {
+        val code = _state.value.profile?.permUnlink.orEmpty()
+        markPermanent(n, false)
+        if (permanent && code.isNotBlank()) dtmf(code + n, Lang.strings(app).getString(R.string.ev_unlink_perm, describe(n)))
+        else dtmf("*1$n", Lang.strings(app).getString(R.string.ev_unlink, describe(n)))
+    }
+
+    fun isPermanent(n: String): Boolean = _state.value.profile?.let { prefs.permanentLinks(it.id).contains(n) } ?: false
+
+    private fun markPermanent(n: String, on: Boolean) {
+        val id = _state.value.profile?.id ?: return
+        val now = prefs.permanentLinks(id)
+        val next = if (on) now + n else now - n
+        if (next != now) prefs.setPermanentLinks(id, next)
+    }
     /**
      * Stock ASL3 has no "disconnect all" DTMF code (*76 only exists on some older/custom configs),
      * so unlink each known link with *1, one after another.
@@ -424,9 +457,12 @@ object Radio {
         val targets = _state.value.links.map { it.number }.filter { it != self }.distinct()
         if (targets.isEmpty()) return
         log(Lang.strings(app).getString(R.string.ev_unlink_all), LogEvent.Kind.CMD)
+        val permCode = _state.value.profile?.permUnlink.orEmpty()
+        val codes = targets.associateWith { n -> if (isPermanent(n) && permCode.isNotBlank()) permCode else "*1" }
+        targets.forEach { markPermanent(it, false) }
         Thread {
             targets.forEach { n ->
-                c.sendDtmf("*1$n")
+                c.sendDtmf(codes.getValue(n) + n)
                 Thread.sleep(200L * (n.length + 2) + 1500)
             }
         }.apply { isDaemon = true }.start()
@@ -464,12 +500,12 @@ object Radio {
         NodeStats.fetch(node).onSuccess { d -> setLinks(d.links, fromNode = false) }
     }
 
-    private fun setLinks(list: List<LinkedNode>, fromNode: Boolean) {
+    private fun setLinks(list: List<LinkedNode>, fromNode: Boolean, announce: Boolean = false) {
         // hide iaxRpt-style clients (names starting with 0) and ourselves
         val clean = list.filter { !it.number.startsWith("0") }.distinctBy { it.number }
         val old = _state.value.links.map { it.number }.toSet()
         val now = clean.map { it.number }.toSet()
-        if (_state.value.conn == Conn.CONNECTED && (_state.value.links.isNotEmpty() || old.isNotEmpty() || fromNode)) {
+        if (_state.value.conn == Conn.CONNECTED && (_state.value.links.isNotEmpty() || old.isNotEmpty() || fromNode || announce)) {
             (now - old).forEach { log(Lang.strings(app).getString(R.string.ev_linked, describe(it))) }
             (old - now).forEach { log(Lang.strings(app).getString(R.string.ev_unlinked, describe(it))) }
         }
