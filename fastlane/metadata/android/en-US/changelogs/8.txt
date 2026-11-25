@@ -1,2 +1,3 @@
 • Permanent links: tick «Permanent» when linking (*813) and unlink with *811; both codes can be changed in Settings
 • Your own private node now shows its links and lets you unlink them
+• Backup: export and import profiles and settings to a file (optionally encrypted with a password), and Android now keeps them in your Google backup

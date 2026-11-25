@@ -19,6 +19,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Upload
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.draw.clip
@@ -245,6 +251,10 @@ fun SettingsScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
 
+        BackupCard { langChanged ->
+            if (langChanged) (ctx as? android.app.Activity)?.recreate() else onSettingsChanged()
+        }
+
         SettingsCard {
             Text(stringResource(R.string.about), style = MaterialTheme.typography.titleMedium)
             Text("Mobile ASL Client ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.bodyMedium)
@@ -426,4 +436,133 @@ private const val DTMF_CHARS = "0123456789*#ABCD"
 private fun Field(v: String, on: (String) -> Unit, label: String, type: KeyboardType = KeyboardType.Text) {
     OutlinedTextField(v, on, label = { Text(label) }, singleLine = true, modifier = Modifier.fillMaxWidth(),
         keyboardOptions = KeyboardOptions(keyboardType = type))
+}
+
+/** Export / import of profiles and settings to a file the user picks (Drive, Downloads, …). */
+@Composable
+private fun BackupCard(onImported: (langChanged: Boolean) -> Unit) {
+    val ctx = LocalContext.current
+    val prefs = Radio.prefs
+    var askExport by remember { mutableStateOf(false) }
+    var exportPw by remember { mutableStateOf("") }
+    var importText by remember { mutableStateOf<String?>(null) }
+    var importPwError by remember { mutableStateOf(false) }
+    // the file passwords are not a login: stop Google's password manager from offering to save them
+    val autofill = androidx.compose.ui.platform.LocalAutofillManager.current
+
+    // PBKDF2 takes a few seconds on older phones: keep it off the main thread
+    val scope = rememberCoroutineScope()
+    var busy by remember { mutableStateOf(false) }
+
+    fun doImport(text: String, pw: String) {
+        val langBefore = ovh.adan.allstar.Lang.code(ctx)
+        busy = true
+        scope.launch {
+            val r = withContext(Dispatchers.Default) { runCatching { ovh.adan.allstar.data.Backup.import(ctx, prefs, text, pw) } }
+            busy = false
+            r.onSuccess { n ->
+                importText = null; autofill?.cancel()
+                Toast.makeText(ctx, ctx.getString(R.string.backup_imported, n), Toast.LENGTH_LONG).show()
+                onImported(ovh.adan.allstar.Lang.code(ctx) != langBefore)
+            }.onFailure { e ->
+                if (e is ovh.adan.allstar.data.Backup.BadPassword) importPwError = true
+                else { importText = null; Toast.makeText(ctx, R.string.backup_bad_file, Toast.LENGTH_LONG).show() }
+            }
+        }
+    }
+
+    val saver = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val pw = exportPw; exportPw = ""
+        if (uri == null) return@rememberLauncherForActivityResult
+        busy = true
+        scope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching {
+                    val json = ovh.adan.allstar.data.Backup.export(ctx, prefs, pw)
+                    ctx.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(json.toByteArray()) }
+                }
+            }
+            busy = false
+            r.onSuccess { Toast.makeText(ctx, R.string.backup_saved, Toast.LENGTH_SHORT).show() }
+                .onFailure { Toast.makeText(ctx, it.message ?: "error", Toast.LENGTH_LONG).show() }
+        }
+    }
+    val opener = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val text = runCatching {
+            ctx.contentResolver.openInputStream(uri)!!.use { s -> s.readBytes().takeIf { it.size < 1_000_000 }?.let { String(it) } }
+        }.getOrNull()
+        val locked = text?.let { runCatching { ovh.adan.allstar.data.Backup.needsPassword(it) }.getOrNull() }
+        when (locked) {
+            null -> Toast.makeText(ctx, R.string.backup_bad_file, Toast.LENGTH_LONG).show()
+            true -> { importPwError = false; importText = text }
+            false -> doImport(text, "")
+        }
+    }
+
+    SettingsCard {
+        Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.backup_sub), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FilledTonalButton(enabled = !busy, onClick = { exportPw = ""; askExport = true }) {
+                Icon(Icons.Default.Upload, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.backup_export))
+            }
+            FilledTonalButton(enabled = !busy, onClick = { opener.launch(arrayOf("application/json", "application/octet-stream", "text/plain")) }) {
+                Icon(Icons.Default.Download, null); Spacer(Modifier.width(6.dp)); Text(stringResource(R.string.backup_import))
+            }
+        }
+        if (busy) androidx.compose.material3.LinearProgressIndicator(Modifier.fillMaxWidth())
+    }
+
+    if (askExport) {
+        var pw by remember { mutableStateOf("") }
+        var pw2 by remember { mutableStateOf("") }
+        val mismatch = pw.isNotEmpty() && pw2.isNotEmpty() && pw != pw2
+        AlertDialog(
+            onDismissRequest = { askExport = false; autofill?.cancel() },
+            title = { Text(stringResource(R.string.backup_export)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.backup_pw_note), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    OutlinedTextField(pw, { pw = it }, label = { Text(stringResource(R.string.backup_pw)) }, singleLine = true,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, autoCorrectEnabled = false))
+                    if (pw.isNotEmpty()) OutlinedTextField(pw2, { pw2 = it }, label = { Text(stringResource(R.string.backup_pw_repeat)) },
+                        singleLine = true, isError = mismatch,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, autoCorrectEnabled = false),
+                        supportingText = { if (mismatch) Text(stringResource(R.string.backup_pw_mismatch)) })
+                }
+            },
+            confirmButton = {
+                TextButton(enabled = pw.isEmpty() || pw == pw2, onClick = {
+                    exportPw = pw; askExport = false; autofill?.cancel()
+                    val day = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
+                    saver.launch("mobile-asl-client-$day.json")
+                }) { Text(stringResource(R.string.save)) }
+            },
+            dismissButton = { TextButton(onClick = { askExport = false; autofill?.cancel() }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
+
+    importText?.let { text ->
+        var pw by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { importText = null; autofill?.cancel() },
+            title = { Text(stringResource(R.string.backup_import)) },
+            text = {
+                OutlinedTextField(pw, { pw = it; importPwError = false }, label = { Text(stringResource(R.string.backup_pw_file)) },
+                    singleLine = true, isError = importPwError,
+                    visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Password, autoCorrectEnabled = false),
+                    supportingText = { if (importPwError) Text(stringResource(R.string.backup_bad_pw)) })
+            },
+            confirmButton = { TextButton(enabled = pw.isNotEmpty() && !busy, onClick = { doImport(text, pw) }) { Text(stringResource(R.string.backup_import)) } },
+            dismissButton = { TextButton(onClick = { importText = null; autofill?.cancel() }) { Text(stringResource(R.string.cancel)) } },
+        )
+    }
 }

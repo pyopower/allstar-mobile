@@ -1,2 +1,3 @@
 • Liaisons permanentes : cochez « Permanente » en liant (*813) et déliez avec *811 ; les deux codes se changent dans Réglages
 • Votre nœud privé affiche maintenant ses liaisons et permet de les couper
+• Sauvegarde : exportez et importez profils et réglages dans un fichier (chiffré par mot de passe si vous voulez) ; Android les garde aussi dans votre sauvegarde Google

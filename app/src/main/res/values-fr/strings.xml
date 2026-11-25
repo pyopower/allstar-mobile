@@ -190,4 +190,17 @@
     <string name="f_perm_link">Code liaison permanente</string>
     <string name="f_perm_unlink">Code déconnexion permanente</string>
     <string name="f_perm_sub">ASL3 n’a pas de codes pour les liaisons permanentes par défaut. Ajoutez-les dans [functions] du rpt.conf, par exemple 813 = ilink,13 et 811 = ilink,11. Une liaison permanente ignore *1. Laissez vide pour masquer l’option.</string>
+    <string name="backup_title">Sauvegarde</string>
+    <string name="backup_sub">Enregistrez vos profils et réglages dans un fichier ou chargez-les sur un autre téléphone. Android les garde aussi dans votre sauvegarde Google et les restaure quand vous réinstallez depuis Play (le mot de passe d’un compte AllStarLink doit être saisi à nouveau).</string>
+    <string name="backup_export">Exporter</string>
+    <string name="backup_import">Importer</string>
+    <string name="backup_pw">Mot de passe (facultatif)</string>
+    <string name="backup_pw_repeat">Répétez le mot de passe</string>
+    <string name="backup_pw_mismatch">Les mots de passe ne correspondent pas</string>
+    <string name="backup_pw_note">Avec un mot de passe, le fichier est chiffré et contient les mots de passe des profils. Sans, ils ne sont pas inclus.</string>
+    <string name="backup_pw_file">Mot de passe du fichier</string>
+    <string name="backup_bad_pw">Mot de passe incorrect</string>
+    <string name="backup_bad_file">Ce n’est pas un fichier de réglages de Mobile ASL Client</string>
+    <string name="backup_saved">Réglages enregistrés</string>
+    <string name="backup_imported">%1$d profils importés</string>
 </resources>
