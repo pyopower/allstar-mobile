@@ -26,6 +26,7 @@
     <string name="tap_to_talk">Toca para hablar</string>
     <string name="release_to_listen">Suelta para escuchar</string>
     <string name="tap_to_stop">Toca para terminar</string>
+    <string name="tot_ending">La transmisión termina en %1$d s</string>
     <string name="keypad">Teclado DTMF</string>
     <string name="activity">Actividad</string>
     <string name="mode_t">Transceptor</string>

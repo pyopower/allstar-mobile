@@ -42,6 +42,8 @@ data class RadioState(
     val tx: Boolean = false,
     val txLevel: Float = -90f,
     val txStartedAt: Long = 0L,
+    /** elapsedRealtime when the transmit timeout cuts the transmission, once its warning has started; else 0. */
+    val txEndsAt: Long = 0L,
     val connectedAt: Long = 0L,
     val links: List<LinkedNode> = emptyList(),
     /** Links talking to us right now (from Allmon3), if known. */
@@ -319,6 +321,7 @@ object Radio {
     }
 
     private val REKEY_MS = 2000L
+    private val TOT_WARN_MS = 10_000L
     private const val STABLE_MS = 8000L
     private const val START_PREROLL = 2400   // 300 ms at 8 kHz
 
@@ -339,11 +342,23 @@ object Radio {
         // bunched up (the microphone starts in bursts) and its jitter buffer drops some of them,
         // which wrecked the start burst. The voice captured meanwhile follows the burst.
         cidBurst()?.let { audio?.injectBurst(ShortArray(START_PREROLL) + it) }
-        _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime()) }
+        _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime(), txEndsAt = 0L) }
         txGuardJob?.cancel()
         txGuardJob = scope.launch {
             launch { while (true) { delay(REKEY_MS); client?.rekey() } }
-            delay(prefs.txTimeoutSec * 1000L)
+            // Warn before the timeout: countdown on screen and a short vibration each second of the
+            // last 5 (vibration, not a beep: the microphone is open and a beep would go on the air).
+            val totMs = prefs.txTimeoutSec * 1000L
+            val warnMs = TOT_WARN_MS.coerceAtMost(totMs / 3)
+            delay(totMs - warnMs)
+            _state.update { it.copy(txEndsAt = SystemClock.elapsedRealtime() + warnMs) }
+            var left = warnMs
+            while (left > 0) {
+                if (left <= 5000) vibrate(60)
+                val step = minOf(1000L, left)
+                delay(step); left -= step
+            }
+            vibrate(400)
             log(Lang.strings(app).getString(R.string.ev_tot), LogEvent.Kind.ERROR)
             pttUp()
         }
@@ -365,11 +380,30 @@ object Radio {
         if (burst != null && a != null) a.finishWithBurst(burst, unkey)   // callsign burst, then unkey
         else { a?.stopCapture(); unkey() }
         val secs = (SystemClock.elapsedRealtime() - _state.value.txStartedAt) / 1000.0
-        _state.update { it.copy(tx = false, txLevel = -90f) }
+        _state.update { it.copy(tx = false, txLevel = -90f, txEndsAt = 0L) }
         if (secs >= 0.5) log(Lang.strings(app).getString(R.string.ev_tx, secs), LogEvent.Kind.TX)
     }
 
     fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
+
+    private fun vibrate(ms: Long) {
+        runCatching {
+            val v = if (android.os.Build.VERSION.SDK_INT >= 31)
+                app.getSystemService(android.os.VibratorManager::class.java).defaultVibrator
+            else @Suppress("DEPRECATION") (app.getSystemService(Context.VIBRATOR_SERVICE) as android.os.Vibrator)
+            // Alarm usage: a plain vibrate() counts as touch feedback and is dropped when the user
+            // turned touch vibration off, which is exactly when this warning matters.
+            val effect = if (android.os.Build.VERSION.SDK_INT >= 26)
+                android.os.VibrationEffect.createOneShot(ms, android.os.VibrationEffect.DEFAULT_AMPLITUDE) else null
+            when {
+                android.os.Build.VERSION.SDK_INT >= 33 -> v.vibrate(effect!!,
+                    android.os.VibrationAttributes.createForUsage(android.os.VibrationAttributes.USAGE_ALARM))
+                effect != null -> @Suppress("DEPRECATION") v.vibrate(effect,
+                    android.media.AudioAttributes.Builder().setUsage(android.media.AudioAttributes.USAGE_ALARM).build())
+                else -> @Suppress("DEPRECATION") v.vibrate(ms)
+            }
+        }
+    }
 
     // ----------------------------------------------------------------- node commands
 

@@ -377,8 +377,12 @@ private fun PttButton(state: RadioState, mode: PttMode) {
     val pulse = rememberInfiniteTransition(label = "pulse")
     val ring by pulse.animateFloat(1f, 1.12f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "ring")
 
+    var nowP by remember { mutableLongStateOf(android.os.SystemClock.elapsedRealtime()) }
+    LaunchedEffect(state.txEndsAt) { while (state.txEndsAt > 0L) { nowP = android.os.SystemClock.elapsedRealtime(); delay(200) } }
+    val totLeft = if (state.tx && state.txEndsAt > 0L) ((state.txEndsAt - nowP + 999) / 1000).coerceAtLeast(0) else -1L
     val hint = when {
         !enabled -> stringResource(if (state.profile?.account == true) R.string.connect_first_wt else R.string.connect_first)
+        totLeft >= 0 -> stringResource(R.string.tot_ending, totLeft.toInt())
         state.tx -> stringResource(if (mode == PttMode.HOLD) R.string.release_to_listen else R.string.tap_to_stop)
         else -> stringResource(if (mode == PttMode.HOLD) R.string.hold_to_talk else R.string.tap_to_talk)
     }
@@ -410,7 +414,9 @@ private fun PttButton(state: RadioState, mode: PttMode) {
                 contentAlignment = Alignment.Center,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Mic, null, Modifier.size(46.dp),
+                    if (totLeft >= 0) Text("$totLeft", color = Color.White, fontWeight = FontWeight.Black,
+                        fontSize = 40.sp, fontFamily = FontFamily.Monospace)
+                    else Icon(Icons.Default.Mic, null, Modifier.size(46.dp),
                         tint = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant)
                     Text("PTT", color = if (enabled) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
                         fontWeight = FontWeight.Black, letterSpacing = 3.sp)
