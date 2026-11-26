@@ -1,0 +1,3 @@
+• Aviso antes de que acabe el tiempo máximo de transmisión: cuenta atrás en el PTT y, a elegir, vibración, pitido o nada
+• Micros-altavoz Bluetooth tipo Abbree: su botón PTT transmite y, si quieres, se habla por su micrófono (actívalo en Ajustes)
+• El PTT se activa al instante y el vúmetro sigue tu voz sin retraso

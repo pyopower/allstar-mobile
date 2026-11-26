@@ -1,0 +1,3 @@
+• Avviso prima della fine del tempo di trasmissione: conto alla rovescia sul PTT e, a scelta, vibrazione, bip o niente
+• Microfoni Bluetooth tipo Abbree: il suo tasto PTT trasmette e, se vuoi, si parla nel suo microfono (attivalo nelle Impostazioni)
+• Il PTT si attiva subito e il VU-meter segue la voce senza ritardo

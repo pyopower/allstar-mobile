@@ -1,0 +1,3 @@
+• Warning before the transmit timeout: countdown on the PTT and, your choice, vibration, beep or nothing
+• Bluetooth speaker-mics like the Abbree: its PTT button transmits and, optionally, you talk through its microphone (enable it in Settings)
+• The PTT keys at once and the meter follows your voice without lag

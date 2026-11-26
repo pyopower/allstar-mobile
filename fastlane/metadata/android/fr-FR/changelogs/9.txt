@@ -1,0 +1,3 @@
+• Avertissement avant la fin du temps d’émission : compte à rebours sur le PTT et, au choix, vibration, bip ou rien
+• Micros Bluetooth type Abbree : son bouton PTT émet et, si vous voulez, on parle dans son micro (à activer dans Réglages)
+• Le PTT s’active tout de suite et le vumètre suit la voix sans retard

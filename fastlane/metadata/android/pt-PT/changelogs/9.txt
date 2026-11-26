@@ -1,0 +1,3 @@
+• Aviso antes de acabar o tempo máximo de transmissão: contagem decrescente no PTT e, à escolha, vibração, bipe ou nada
+• Microfones Bluetooth tipo Abbree: o seu botão PTT transmite e, se quiser, fala-se pelo seu microfone (ative nas Definições)
+• O PTT ativa-se de imediato e o vumetro acompanha a voz sem atraso

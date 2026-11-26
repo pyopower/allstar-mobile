@@ -1,0 +1,3 @@
+• Warnung vor Ablauf der Sendezeit: Countdown auf der PTT-Taste und wahlweise Vibration, Piepton oder nichts
+• Bluetooth-Handmikrofone wie Abbree: die PTT-Taste sendet, optional über dessen Mikrofon (in den Einstellungen aktivieren)
+• PTT reagiert sofort und die Pegelanzeige folgt der Stimme ohne Verzögerung
