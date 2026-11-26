@@ -1,3 +1,5 @@
 • Enlaces permanentes: marca «Permanente» al enlazar (*813) y desenlaza con *811; los dos códigos se cambian en Ajustes
 • Tu nodo privado muestra ahora sus enlaces y permite desenlazarlos
 • Copia de seguridad: exporta e importa perfiles y ajustes a un archivo (cifrado con contraseña si quieres), y Android los guarda ahora en tu copia de Google
+• Las salas EchoLink enlazadas conservan su nombre
+• La ✕ desenlaza también enlaces permanentes hechos desde otro sitio

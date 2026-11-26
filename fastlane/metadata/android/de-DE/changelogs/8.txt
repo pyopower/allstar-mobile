@@ -1,3 +1,5 @@
 • Permanente Verbindungen: beim Verbinden «Permanent» ankreuzen (*813), trennen mit *811; beide Codes in den Einstellungen änderbar
 • Dein privater Node zeigt jetzt seine Verbindungen und lässt sie trennen
 • Sicherung: Profile und Einstellungen in eine Datei exportieren und importieren (optional mit Passwort verschlüsselt); Android sichert sie jetzt auch im Google-Backup
+• Verbundene EchoLink-Konferenzen behalten ihren Namen
+• Das ✕ trennt auch anderswo erstellte permanente Links

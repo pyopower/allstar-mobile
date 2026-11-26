@@ -1,3 +1,5 @@
 • Collegamenti permanenti: spunta «Permanente» quando colleghi (*813) e scollega con *811; i due codici si cambiano in Impostazioni
 • Il tuo nodo privato ora mostra i suoi collegamenti e permette di scollegarli
 • Backup: esporta e importa profili e impostazioni in un file (cifrato con password se vuoi); Android ora li salva anche nel backup di Google
+• Le conferenze EchoLink collegate mantengono il nome
+• La ✕ scollega anche i collegamenti permanenti creati altrove
