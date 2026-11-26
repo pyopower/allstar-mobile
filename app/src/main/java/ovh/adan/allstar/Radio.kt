@@ -339,30 +339,35 @@ object Radio {
     // ----------------------------------------------------------------- PTT
 
     fun pttDown() {
-        if (client == null || _state.value.conn != Conn.CONNECTED || _state.value.tx || pendingTx) return
-        // Bluetooth speaker-mic: open its call channel (SCO) first and wait for it (at most 1.5 s)
-        if (btPtt?.routeTx() == true) {
+        if (client == null || _state.value.conn != Conn.CONNECTED || _state.value.tx) return
+        // Bluetooth speaker-mic: key the node and show it at once, but start recording only when its
+        // call channel (SCO) is up (at most 1.5 s), so nothing from the phone's own mic goes out.
+        val waitSco = btPtt?.routeTx() == true
+        startTxNow(capture = !waitSco)
+        if (waitSco) {
             pendingTx = true
             mainH.postDelayed(txNow, 1500)
-            return
         }
-        startTxNow()
     }
 
     private val mainH = android.os.Handler(android.os.Looper.getMainLooper())
-    private var pendingTx = false                     // PTT pressed, waiting for the BT mic (SCO) to come up
-    private val txNow = Runnable { if (pendingTx) { pendingTx = false; startTxNow() } }
+    private var pendingTx = false                     // keyed, waiting for the BT mic (SCO) before recording
+    private val txNow = Runnable { if (pendingTx) { pendingTx = false; if (_state.value.tx) beginCapture() } }
 
-    private fun startTxNow() {
-        val c = client ?: return
-        if (_state.value.conn != Conn.CONNECTED || _state.value.tx) return
-        btPtt?.let { it.txing = true; it.reclaimSoon() }
-        c.key()
+    private fun beginCapture() {
         audio?.startCapture()
         // 300 ms of silence before the start burst: the first frames of a transmission reach the node
         // bunched up (the microphone starts in bursts) and its jitter buffer drops some of them,
         // which wrecked the start burst. The voice captured meanwhile follows the burst.
         cidBurst()?.let { audio?.injectBurst(ShortArray(START_PREROLL) + it) }
+    }
+
+    private fun startTxNow(capture: Boolean = true) {
+        val c = client ?: return
+        if (_state.value.conn != Conn.CONNECTED || _state.value.tx) return
+        btPtt?.let { it.txing = true; it.reclaimSoon() }
+        c.key()
+        if (capture) beginCapture()
         _state.update { it.copy(tx = true, txStartedAt = SystemClock.elapsedRealtime(), txEndsAt = 0L) }
         txGuardJob?.cancel()
         txGuardJob = scope.launch {
@@ -386,9 +391,13 @@ object Radio {
     }
 
     fun pttUp() {
-        if (pendingTx) {                    // released before the BT mic came up
+        if (pendingTx) {                    // released before the BT mic came up: nothing was recorded
             pendingTx = false; mainH.removeCallbacks(txNow)
-            btPtt?.routeIdle()
+            if (!_state.value.tx) return
+            txGuardJob?.cancel()
+            btPtt?.let { it.txing = false; it.routeIdle() }
+            client?.unkey()
+            _state.update { it.copy(tx = false, txLevel = -90f, txEndsAt = 0L) }
             return
         }
         if (!_state.value.tx) return
@@ -411,7 +420,7 @@ object Radio {
         if (secs >= 0.5) log(Lang.strings(app).getString(R.string.ev_tx, secs), LogEvent.Kind.TX)
     }
 
-    fun togglePtt() = if (_state.value.tx || pendingTx) pttUp() else pttDown()
+    fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
 
     // ----------------------------------------------------------------- Bluetooth speaker-mic
 

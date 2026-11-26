@@ -236,7 +236,9 @@ class AudioEngine(private val callbacks: Callbacks) {
                         if (injectPos >= inj.size) inject = null
                     }
                 } else delayed.pollFirst() ?: ShortArray(FRAME)
-                callbacks.onTxLevel(levelDb(frame))
+                // meter = the microphone now, not the frame going out (with Ham CallerID the voice is
+                // sent ~0.5 s late, behind the start burst, and the meter lagged the voice that much)
+                callbacks.onTxLevel(levelDb(if (ending) frame else pcm))
                 callbacks.onMicFrame(Ulaw.encode(frame, out).copyOf())
                 if (sendingEnd && inject == null) {
                     sendingEnd = false
