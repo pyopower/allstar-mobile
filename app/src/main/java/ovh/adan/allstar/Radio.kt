@@ -44,7 +44,7 @@ data class RadioState(
     val txStartedAt: Long = 0L,
     /** Receive audio silenced by the user (speaker icon). */
     val muted: Boolean = false,
-    /** A phone call (ringing, in a call, or a VoIP call) is going on: receive is silenced and PTT blocked. */
+    /** A phone call is ringing or going on: receive is silenced and PTT blocked. */
     val inCall: Boolean = false,
     /** elapsedRealtime when the transmit timeout cuts the transmission, once its warning has started; else 0. */
     val txEndsAt: Long = 0L,
@@ -410,7 +410,6 @@ object Radio {
             return
         }
         if (!_state.value.tx) return
-        lastTxEnd = SystemClock.elapsedRealtime()
         btPtt?.let { it.txing = false; it.routeIdle() }   // close SCO: receive goes back to A2DP
         txGuardJob?.cancel()
         val c = client
@@ -442,21 +441,19 @@ object Radio {
     private fun applyMute() { audio?.muted = _state.value.muted || _state.value.inCall }
 
     private var callWatch: Job? = null
-    private var lastTxEnd = 0L
 
-    /** Watch the phone's audio mode (no phone permission needed): it changes while a call rings or
-     *  goes on, also for VoIP calls. Polled once a second while connected. */
+    /** Watch the phone's audio mode (no phone permission needed): it changes while a phone call rings
+     *  or goes on. Polled once a second while connected. */
     private fun startCallWatch() {
         if (callWatch?.isActive == true) return
         val am = app.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
         callWatch = scope.launch {
             while (true) {
                 val m = am.mode
-                // VoIP mode also comes from our own Bluetooth mic (SCO) while transmitting: only a call
-                // if we are not transmitting and did not just stop
-                val ownSco = _state.value.tx || pendingTx || SystemClock.elapsedRealtime() - lastTxEnd < 3000
+                // phone calls only: VoIP mode (IN_COMMUNICATION) is also what radio apps like DVSwitch
+                // Mobile use for their "speaker as a call" mode, and would leave us muted for good
                 val call = m == android.media.AudioManager.MODE_RINGTONE || m == android.media.AudioManager.MODE_IN_CALL ||
-                    (m == android.media.AudioManager.MODE_IN_COMMUNICATION && !ownSco) || m >= 4   // 4 screening, 5/6 redirects
+                    m >= 4   // 4 call screening, 5/6 call redirects
                 if (call != _state.value.inCall) {
                     _state.update { it.copy(inCall = call) }
                     applyMute()
