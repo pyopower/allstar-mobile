@@ -125,18 +125,29 @@ class IaxClient(
     }
 
     /** Send DTMF digits (app_rpt treats them as link commands, e.g. *3nnnn). */
+    /** One queue for every DTMF string: two strings sent at once (a double tap on ✕ plus the
+     *  automatic *811 retry) used to interleave their digits and the node understood neither. */
+    private val dtmfQueue = java.util.concurrent.Executors.newSingleThreadExecutor { r ->
+        Thread(r, "iax-dtmf").apply { isDaemon = true }
+    }
+
     fun sendDtmf(digits: String) {
-        Thread(Runnable {
-            for (c in digits) {
-                synchronized(lock) {
-                    if (state != State.CONNECTED) return@Runnable
-                    sendFull(FT_DTMF_BEGIN, c.code)
-                }
-                Thread.sleep(90)
-                synchronized(lock) { sendFull(FT_DTMF, c.code) }
-                Thread.sleep(110)
+        runCatching {
+            dtmfQueue.execute {
+                try {
+                    for (c in digits) {
+                        synchronized(lock) {
+                            if (state != State.CONNECTED) return@execute
+                            sendFull(FT_DTMF_BEGIN, c.code)
+                        }
+                        Thread.sleep(90)
+                        synchronized(lock) { sendFull(FT_DTMF, c.code) }
+                        Thread.sleep(110)
+                    }
+                    Thread.sleep(400)   // gap between commands
+                } catch (_: InterruptedException) {}   // connection closed
             }
-        }, "iax-dtmf").start()
+        }
     }
 
     fun sendText(text: String) = synchronized(lock) {
@@ -155,6 +166,7 @@ class IaxClient(
     }
 
     private fun close(reason: String?) {
+        dtmfQueue.shutdownNow()
         val s = socket
         socket = null
         if (state != State.CLOSED) setState(State.CLOSED, reason)
