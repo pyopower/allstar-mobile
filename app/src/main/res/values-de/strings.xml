@@ -24,6 +24,10 @@
     <string name="release_to_listen">Loslassen zum Hören</string>
     <string name="tap_to_stop">Tippen zum Beenden</string>
     <string name="tot_ending">Sendung endet in %1$d s</string>
+    <string name="tot_warn">Warnung vor Zeitablauf</string>
+    <string name="tot_warn_vibrate">Vibration</string>
+    <string name="tot_warn_beep">Piepton</string>
+    <string name="tot_warn_none">Keine</string>
     <string name="keypad">DTMF-Tastatur</string>
     <string name="activity">Aktivität</string>
     <string name="mode_t">Senden/Empfangen</string>

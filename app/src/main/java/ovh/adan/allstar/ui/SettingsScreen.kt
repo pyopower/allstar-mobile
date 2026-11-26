@@ -194,6 +194,19 @@ fun SettingsScreen(
                 var tot by remember { mutableFloatStateOf(prefs.txTimeoutSec.toFloat()) }
                 Text("${stringResource(R.string.tx_timeout)}: ${tot.toInt()} s", style = MaterialTheme.typography.bodyMedium)
                 Slider(tot, { tot = it }, valueRange = 30f..600f, steps = 18, onValueChangeFinished = { prefs.txTimeoutSec = tot.toInt() })
+                Text(stringResource(R.string.tot_warn), style = MaterialTheme.typography.bodyMedium)
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    ovh.adan.allstar.data.TotWarn.entries.forEachIndexed { i, w ->
+                        SegmentedButton(selected = prefs.totWarn == w, onClick = { prefs.totWarn = w; onSettingsChanged() },
+                            shape = SegmentedButtonDefaults.itemShape(i, ovh.adan.allstar.data.TotWarn.entries.size)) {
+                            Text(stringResource(when (w) {
+                                ovh.adan.allstar.data.TotWarn.VIBRATE -> R.string.tot_warn_vibrate
+                                ovh.adan.allstar.data.TotWarn.BEEP -> R.string.tot_warn_beep
+                                ovh.adan.allstar.data.TotWarn.NONE -> R.string.tot_warn_none
+                            }))
+                        }
+                    }
+                }
             }
         }
 

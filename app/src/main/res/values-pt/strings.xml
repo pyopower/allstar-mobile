@@ -24,6 +24,10 @@
     <string name="release_to_listen">Solte para escutar</string>
     <string name="tap_to_stop">Toque para parar</string>
     <string name="tot_ending">A transmissão termina em %1$d s</string>
+    <string name="tot_warn">Aviso antes de acabar o tempo</string>
+    <string name="tot_warn_vibrate">Vibração</string>
+    <string name="tot_warn_beep">Bipe</string>
+    <string name="tot_warn_none">Nenhum</string>
     <string name="keypad">Teclado DTMF</string>
     <string name="activity">Atividade</string>
     <string name="mode_t">Bidirecional</string>

@@ -346,19 +346,19 @@ object Radio {
         txGuardJob?.cancel()
         txGuardJob = scope.launch {
             launch { while (true) { delay(REKEY_MS); client?.rekey() } }
-            // Warn before the timeout: countdown on screen and a short vibration each second of the
-            // last 5 (vibration, not a beep: the microphone is open and a beep would go on the air).
+            // Warn before the timeout: countdown on screen, and each second of the last 5 a short
+            // vibration or beep (the user's choice; a beep through the speaker also goes on the air).
             val totMs = prefs.txTimeoutSec * 1000L
             val warnMs = TOT_WARN_MS.coerceAtMost(totMs / 3)
             delay(totMs - warnMs)
             _state.update { it.copy(txEndsAt = SystemClock.elapsedRealtime() + warnMs) }
             var left = warnMs
             while (left > 0) {
-                if (left <= 5000) vibrate(60)
+                if (left <= 5000) totTick(last = false)
                 val step = minOf(1000L, left)
                 delay(step); left -= step
             }
-            vibrate(400)
+            totTick(last = true)
             log(Lang.strings(app).getString(R.string.ev_tot), LogEvent.Kind.ERROR)
             pttUp()
         }
@@ -385,6 +385,25 @@ object Radio {
     }
 
     fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
+
+    private fun totTick(last: Boolean) {
+        when (prefs.totWarn) {
+            ovh.adan.allstar.data.TotWarn.VIBRATE -> vibrate(if (last) 400 else 60)
+            ovh.adan.allstar.data.TotWarn.BEEP -> beep(last)
+            ovh.adan.allstar.data.TotWarn.NONE -> Unit
+        }
+    }
+
+    private var toneGen: android.media.ToneGenerator? = null
+
+    /** A modest beep at media volume; a double one when the timeout cuts. */
+    private fun beep(last: Boolean) {
+        runCatching {
+            val t = toneGen ?: android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 50).also { toneGen = it }
+            if (last) t.startTone(android.media.ToneGenerator.TONE_PROP_BEEP2, 400)
+            else t.startTone(android.media.ToneGenerator.TONE_PROP_BEEP, 120)
+        }
+    }
 
     private fun vibrate(ms: Long) {
         runCatching {

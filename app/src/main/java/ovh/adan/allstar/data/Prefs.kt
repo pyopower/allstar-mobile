@@ -56,6 +56,9 @@ data class Profile(
 
 enum class PttMode { HOLD, TOGGLE }
 
+/** How the app warns that the transmit timeout is about to cut the transmission. */
+enum class TotWarn { VIBRATE, BEEP, NONE }
+
 class Prefs(ctx: Context) {
     private val sp = ctx.getSharedPreferences("allstar", Context.MODE_PRIVATE)
 
@@ -87,6 +90,9 @@ class Prefs(ctx: Context) {
     var pttMode: PttMode
         get() = runCatching { PttMode.valueOf(sp.getString("pttMode", "HOLD")!!) }.getOrDefault(PttMode.HOLD)
         set(v) { sp.edit().putString("pttMode", v.name).apply() }
+    var totWarn: TotWarn
+        get() = runCatching { TotWarn.valueOf(sp.getString("totWarn", "VIBRATE")!!) }.getOrDefault(TotWarn.VIBRATE)
+        set(v) { sp.edit().putString("totWarn", v.name).apply() }
 
     var micGain: Float
         get() = sp.getFloat("micGain", 1.0f)

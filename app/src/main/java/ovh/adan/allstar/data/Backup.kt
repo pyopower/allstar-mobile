@@ -39,7 +39,7 @@ object Backup {
             .put("recents", JSONArray(prefs.recents))
             .put("perm", JSONObject().apply { profiles.forEach { put(it.id, JSONArray(prefs.permanentLinks(it.id).toList())) } })
             .put("settings", JSONObject()
-                .put("pttMode", prefs.pttMode.name).put("micGain", prefs.micGain.toDouble())
+                .put("pttMode", prefs.pttMode.name).put("totWarn", prefs.totWarn.name).put("micGain", prefs.micGain.toDouble())
                 .put("volumeKeyPtt", prefs.volumeKeyPtt).put("txTimeout", prefs.txTimeoutSec)
                 .put("autoConnect", prefs.autoConnect).put("startOnBoot", prefs.startOnBoot)
                 .put("sendCallerId", prefs.sendCallerId).put("keepScreenOn", prefs.keepScreenOn)
@@ -91,6 +91,7 @@ object Backup {
         }
         body.optJSONObject("settings")?.let { s ->
             if (s.has("pttMode")) runCatching { prefs.pttMode = PttMode.valueOf(s.getString("pttMode")) }
+            if (s.has("totWarn")) runCatching { prefs.totWarn = TotWarn.valueOf(s.getString("totWarn")) }
             if (s.has("micGain")) prefs.micGain = s.getDouble("micGain").toFloat().coerceIn(0.5f, 4f)
             if (s.has("volumeKeyPtt")) prefs.volumeKeyPtt = s.getBoolean("volumeKeyPtt")
             if (s.has("txTimeout")) prefs.txTimeoutSec = s.getInt("txTimeout").coerceIn(30, 600)
