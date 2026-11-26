@@ -16,6 +16,12 @@
     <string name="status_disconnected">Offline</string>
     <string name="status_connecting">Connecting…</string>
     <string name="status_connected">Listening</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+    <string name="muted_call">Silenced during the phone call</string>
+    <string name="ev_call_muted">Phone call: receive silenced</string>
+    <string name="ev_call_ended">Call ended: sound back</string>
+    <string name="ev_ptt_in_call">PTT disabled during a phone call</string>
     <string name="status_rx">Receiving</string>
     <string name="status_tx">Transmitting</string>
 

@@ -13,6 +13,12 @@
     <string name="status_disconnected">Sem ligação</string>
     <string name="status_connecting">A ligar…</string>
     <string name="status_connected">A escutar</string>
+    <string name="mute">Silenciar</string>
+    <string name="unmute">Ativar som</string>
+    <string name="muted_call">Silenciado durante a chamada</string>
+    <string name="ev_call_muted">Chamada telefónica: receção silenciada</string>
+    <string name="ev_call_ended">Fim da chamada: volta o som</string>
+    <string name="ev_ptt_in_call">PTT desativado durante uma chamada</string>
     <string name="status_rx">A receber</string>
     <string name="status_tx">A transmitir</string>
     <string name="my_node">O meu nó %1$s</string>

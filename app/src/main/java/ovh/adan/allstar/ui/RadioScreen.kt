@@ -46,6 +46,9 @@ import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PowerSettingsNew
 import androidx.compose.material.icons.filled.Backspace
 import androidx.compose.material.icons.filled.Hearing
+import androidx.compose.material.icons.filled.PhoneInTalk
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -258,6 +261,24 @@ private fun StatusCard(state: RadioState) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Pill(label, color)
+                if (state.conn != Conn.DISCONNECTED) {
+                    Spacer(Modifier.width(4.dp))
+                    IconButton(onClick = { Radio.toggleMute() }, enabled = !state.inCall) {
+                        Icon(
+                            when {
+                                state.inCall -> Icons.Default.PhoneInTalk
+                                state.muted -> Icons.AutoMirrored.Filled.VolumeOff
+                                else -> Icons.AutoMirrored.Filled.VolumeUp
+                            },
+                            stringResource(when {
+                                state.inCall -> R.string.muted_call
+                                state.muted -> R.string.unmute
+                                else -> R.string.mute
+                            }),
+                            tint = if (state.muted || state.inCall) rc.star else MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
                 Spacer(Modifier.weight(1f))
                 if (state.tx) {
                     val secs = ((now - state.txStartedAt) / 1000).coerceAtLeast(0)

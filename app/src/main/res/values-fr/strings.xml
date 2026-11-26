@@ -13,6 +13,12 @@
     <string name="status_disconnected">Hors ligne</string>
     <string name="status_connecting">Connexion…</string>
     <string name="status_connected">À l\'écoute</string>
+    <string name="mute">Couper le son</string>
+    <string name="unmute">Rétablir le son</string>
+    <string name="muted_call">Coupé pendant l\'appel</string>
+    <string name="ev_call_muted">Appel téléphonique : réception coupée</string>
+    <string name="ev_call_ended">Fin de l\'appel : le son revient</string>
+    <string name="ev_ptt_in_call">PTT désactivé pendant un appel</string>
     <string name="status_rx">Réception</string>
     <string name="status_tx">Émission</string>
     <string name="my_node">Mon nœud %1$s</string>

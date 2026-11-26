@@ -30,6 +30,8 @@ class AudioEngine(private val callbacks: Callbacks) {
 
     @Volatile var micGain = 1.0f
     @Volatile var speakerGain = 1.0f
+    /** Receive keeps running (meter, Ham CallerID decoding) but nothing is played. */
+    @Volatile var muted = false
 
     private val rxQueue = ArrayBlockingQueue<ShortArray>(MAX_QUEUE)
     @Volatile private var running = false
@@ -179,7 +181,7 @@ class AudioEngine(private val callbacks: Callbacks) {
                 val g = speakerGain
                 if (g != 1.0f) for (i in f.indices) f[i] = clip(f[i] * g)
                 callbacks.onRxLevel(levelDb(f))
-                track.write(f, 0, f.size)
+                track.write(if (muted) silence else f, 0, f.size)
                 last = f
             }
         } catch (_: InterruptedException) {

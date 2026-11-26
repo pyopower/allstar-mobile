@@ -42,6 +42,10 @@ data class RadioState(
     val tx: Boolean = false,
     val txLevel: Float = -90f,
     val txStartedAt: Long = 0L,
+    /** Receive audio silenced by the user (speaker icon). */
+    val muted: Boolean = false,
+    /** A phone call (ringing, in a call, or a VoIP call) is going on: receive is silenced and PTT blocked. */
+    val inCall: Boolean = false,
     /** elapsedRealtime when the transmit timeout cuts the transmission, once its warning has started; else 0. */
     val txEndsAt: Long = 0L,
     val connectedAt: Long = 0L,
@@ -248,6 +252,7 @@ object Radio {
         if (_state.value.conn != Conn.DISCONNECTED) log(Lang.strings(app).getString(R.string.ev_disconnected))
         _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList(), talkers = emptySet()) }
         updateBtPtt()
+        stopCallWatch()
         LinkService.stop(app)
     }
 
@@ -261,6 +266,8 @@ object Radio {
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
                 updateBtPtt()
+                applyMute()
+                startCallWatch()
                 log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
                 _state.value.profile?.let { p ->
                     allmon?.stop()
@@ -316,6 +323,7 @@ object Radio {
                     keepUp = false; sessionUp = false
                     _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
                     updateBtPtt()
+                    stopCallWatch()
                     LinkService.stop(app)
                 }
             }
@@ -340,6 +348,7 @@ object Radio {
 
     fun pttDown() {
         if (client == null || _state.value.conn != Conn.CONNECTED || _state.value.tx) return
+        if (_state.value.inCall) { log(Lang.strings(app).getString(R.string.ev_ptt_in_call)); return }
         // Bluetooth speaker-mic: key the node and show it at once, but start recording only when its
         // call channel (SCO) is up (at most 1.5 s), so nothing from the phone's own mic goes out.
         val waitSco = btPtt?.routeTx() == true
@@ -401,6 +410,7 @@ object Radio {
             return
         }
         if (!_state.value.tx) return
+        lastTxEnd = SystemClock.elapsedRealtime()
         btPtt?.let { it.txing = false; it.routeIdle() }   // close SCO: receive goes back to A2DP
         txGuardJob?.cancel()
         val c = client
@@ -421,6 +431,50 @@ object Radio {
     }
 
     fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
+
+    // ----------------------------------------------------------------- mute and phone calls
+
+    fun toggleMute() {
+        _state.update { it.copy(muted = !it.muted) }
+        applyMute()
+    }
+
+    private fun applyMute() { audio?.muted = _state.value.muted || _state.value.inCall }
+
+    private var callWatch: Job? = null
+    private var lastTxEnd = 0L
+
+    /** Watch the phone's audio mode (no phone permission needed): it changes while a call rings or
+     *  goes on, also for VoIP calls. Polled once a second while connected. */
+    private fun startCallWatch() {
+        if (callWatch?.isActive == true) return
+        val am = app.getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
+        callWatch = scope.launch {
+            while (true) {
+                val m = am.mode
+                // VoIP mode also comes from our own Bluetooth mic (SCO) while transmitting: only a call
+                // if we are not transmitting and did not just stop
+                val ownSco = _state.value.tx || pendingTx || SystemClock.elapsedRealtime() - lastTxEnd < 3000
+                val call = m == android.media.AudioManager.MODE_RINGTONE || m == android.media.AudioManager.MODE_IN_CALL ||
+                    (m == android.media.AudioManager.MODE_IN_COMMUNICATION && !ownSco) || m >= 4   // 4 screening, 5/6 redirects
+                if (call != _state.value.inCall) {
+                    _state.update { it.copy(inCall = call) }
+                    applyMute()
+                    if (call) {
+                        if (_state.value.tx) mainH.post { pttUp() }
+                        log(Lang.strings(app).getString(R.string.ev_call_muted))
+                    } else log(Lang.strings(app).getString(R.string.ev_call_ended))
+                }
+                delay(1000)
+            }
+        }
+    }
+
+    private fun stopCallWatch() {
+        callWatch?.cancel(); callWatch = null
+        _state.update { it.copy(inCall = false, muted = false) }
+        applyMute()
+    }
 
     // ----------------------------------------------------------------- Bluetooth speaker-mic
 

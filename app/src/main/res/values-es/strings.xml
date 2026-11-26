@@ -15,6 +15,12 @@
     <string name="status_disconnected">Sin conexión</string>
     <string name="status_connecting">Conectando…</string>
     <string name="status_connected">Escuchando</string>
+    <string name="mute">Silenciar</string>
+    <string name="unmute">Quitar silencio</string>
+    <string name="muted_call">Silenciado durante la llamada</string>
+    <string name="ev_call_muted">Llamada de teléfono: audio silenciado</string>
+    <string name="ev_call_ended">Fin de la llamada: vuelve el sonido</string>
+    <string name="ev_ptt_in_call">PTT desactivado durante una llamada</string>
     <string name="status_rx">Recibiendo</string>
     <string name="status_tx">Transmitiendo</string>
 

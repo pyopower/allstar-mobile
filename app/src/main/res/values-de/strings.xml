@@ -13,6 +13,12 @@
     <string name="status_disconnected">Nicht verbunden</string>
     <string name="status_connecting">Verbinde…</string>
     <string name="status_connected">Empfangsbereit</string>
+    <string name="mute">Stummschalten</string>
+    <string name="unmute">Ton an</string>
+    <string name="muted_call">Während des Anrufs stumm</string>
+    <string name="ev_call_muted">Telefonanruf: Empfang stumm</string>
+    <string name="ev_call_ended">Anruf beendet: Ton wieder an</string>
+    <string name="ev_ptt_in_call">PTT während eines Anrufs gesperrt</string>
     <string name="status_rx">Empfang</string>
     <string name="status_tx">Senden</string>
     <string name="my_node">Mein Node %1$s</string>

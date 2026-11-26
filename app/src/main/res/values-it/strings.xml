@@ -13,6 +13,12 @@
     <string name="status_disconnected">Non connesso</string>
     <string name="status_connecting">Connessione…</string>
     <string name="status_connected">In ascolto</string>
+    <string name="mute">Silenzia</string>
+    <string name="unmute">Riattiva audio</string>
+    <string name="muted_call">Silenziato durante la chiamata</string>
+    <string name="ev_call_muted">Chiamata: ricezione silenziata</string>
+    <string name="ev_call_ended">Fine chiamata: torna l\'audio</string>
+    <string name="ev_ptt_in_call">PTT disattivato durante una chiamata</string>
     <string name="status_rx">In ricezione</string>
     <string name="status_tx">In trasmissione</string>
     <string name="my_node">Il mio nodo %1$s</string>
