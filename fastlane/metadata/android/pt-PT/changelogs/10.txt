@@ -1,0 +1,3 @@
+• Botão junto ao estado para silenciar a receção sem desligar
+• Durante uma chamada telefónica silencia-se sozinha e o PTT fica bloqueado até desligar
+• Desligar várias vezes seguidas já não mistura os tons DTMF (por vezes a ligação não caía)

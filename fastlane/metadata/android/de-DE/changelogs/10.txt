@@ -1,0 +1,3 @@
+• Taste neben dem Status, um den Empfang ohne Trennen stummzuschalten
+• Während eines Telefonanrufs wird automatisch stummgeschaltet und PTT bis zum Auflegen gesperrt
+• Mehrfaches Trennen hintereinander mischt die DTMF-Töne nicht mehr (manchmal blieb die Verbindung bestehen)

@@ -1,0 +1,3 @@
+• Pulsante accanto allo stato per silenziare la ricezione senza disconnettersi
+• Durante una chiamata telefonica si silenzia da sola e il PTT è bloccato fino a fine chiamata
+• Scollegare più volte di seguito non mescola più i toni DTMF (a volte il collegamento restava attivo)

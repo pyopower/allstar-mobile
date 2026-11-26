@@ -1,0 +1,3 @@
+• Button next to the status to mute receive without disconnecting
+• During a phone call it mutes itself and PTT is blocked until you hang up
+• Unlinking several times in a row no longer mixes the DTMF tones (sometimes the link stayed up)

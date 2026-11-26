@@ -1,0 +1,3 @@
+• Bouton à côté de l’état pour couper la réception sans se déconnecter
+• Pendant un appel téléphonique, le son se coupe tout seul et le PTT est bloqué jusqu’à raccrocher
+• Délier plusieurs fois de suite ne mélange plus les tonalités DTMF (parfois le lien restait actif)
