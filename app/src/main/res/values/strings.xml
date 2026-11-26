@@ -80,6 +80,10 @@
     <string name="ptt">Push to talk</string>
     <string name="ptt_hold">Hold</string>
     <string name="ptt_toggle">Toggle</string>
+    <string name="bt_ptt">Bluetooth speaker-mic PTT</string>
+    <string name="bt_ptt_sub">Abbree and similar: its PTT button transmits. If PTT Bridge is running, it keeps the button</string>
+    <string name="bt_mic">Use its microphone</string>
+    <string name="bt_mic_sub">Transmit from the speaker-mic instead of the phone (Android 12+)</string>
     <string name="volume_ptt">Volume-down key is PTT</string>
     <string name="volume_ptt_sub">While the app is on screen</string>
     <string name="mic_gain">Microphone gain</string>

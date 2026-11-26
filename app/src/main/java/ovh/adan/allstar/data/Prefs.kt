@@ -98,6 +98,14 @@ class Prefs(ctx: Context) {
         get() = sp.getFloat("micGain", 1.0f)
         set(v) { sp.edit().putFloat("micGain", v).apply() }
 
+    /** PTT button of a Bluetooth speaker-mic (Abbree and similar: AVRCP FF = press, REWIND = release). */
+    var btPtt: Boolean
+        get() = sp.getBoolean("btPtt", false)
+        set(v) { sp.edit().putBoolean("btPtt", v).apply() }
+    /** With btPtt: transmit from the speaker-mic's microphone (SCO) instead of the phone's. */
+    var btMic: Boolean
+        get() = sp.getBoolean("btMic", true)
+        set(v) { sp.edit().putBoolean("btMic", v).apply() }
     var volumeKeyPtt: Boolean
         get() = sp.getBoolean("volumeKeyPtt", false)
         set(v) { sp.edit().putBoolean("volumeKeyPtt", v).apply() }

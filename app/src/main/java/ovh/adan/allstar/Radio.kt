@@ -247,6 +247,7 @@ object Radio {
         teardown()
         if (_state.value.conn != Conn.DISCONNECTED) log(Lang.strings(app).getString(R.string.ev_disconnected))
         _state.update { it.copy(conn = Conn.DISCONNECTED, rx = false, tx = false, rxLevel = -90f, txLevel = -90f, links = emptyList(), talkers = emptySet()) }
+        updateBtPtt()
         LinkService.stop(app)
     }
 
@@ -259,6 +260,7 @@ object Radio {
                 stableJob = scope.launch { delay(STABLE_MS); if (_state.value.conn == Conn.CONNECTED) { sessionUp = true; reconnectAttempt = 0; wtTriedOther = false } }
                 audio?.start()
                 _state.update { it.copy(conn = Conn.CONNECTED, reason = null, connectedAt = System.currentTimeMillis()) }
+                updateBtPtt()
                 log(Lang.strings(app).getString(R.string.ev_connected, _state.value.profile?.node.orEmpty()))
                 _state.value.profile?.let { p ->
                     allmon?.stop()
@@ -313,6 +315,7 @@ object Radio {
                 } else {
                     keepUp = false; sessionUp = false
                     _state.update { it.copy(conn = Conn.DISCONNECTED, reason = reason, rx = false, tx = false, links = emptyList(), talkers = emptySet()) }
+                    updateBtPtt()
                     LinkService.stop(app)
                 }
             }
@@ -321,6 +324,8 @@ object Radio {
     }
 
     private val REKEY_MS = 2000L
+    private const val BRIDGE_ALIVE = "ovh.adan.pttbridge.ALIVE"   // PTT Bridge heartbeat: it holds the button
+    private const val BRIDGE_GONE = "ovh.adan.pttbridge.GONE"
     private val TOT_WARN_MS = 10_000L
     private const val STABLE_MS = 8000L
     private const val START_PREROLL = 2400   // 300 ms at 8 kHz
@@ -334,8 +339,24 @@ object Radio {
     // ----------------------------------------------------------------- PTT
 
     fun pttDown() {
+        if (client == null || _state.value.conn != Conn.CONNECTED || _state.value.tx || pendingTx) return
+        // Bluetooth speaker-mic: open its call channel (SCO) first and wait for it (at most 1.5 s)
+        if (btPtt?.routeTx() == true) {
+            pendingTx = true
+            mainH.postDelayed(txNow, 1500)
+            return
+        }
+        startTxNow()
+    }
+
+    private val mainH = android.os.Handler(android.os.Looper.getMainLooper())
+    private var pendingTx = false                     // PTT pressed, waiting for the BT mic (SCO) to come up
+    private val txNow = Runnable { if (pendingTx) { pendingTx = false; startTxNow() } }
+
+    private fun startTxNow() {
         val c = client ?: return
         if (_state.value.conn != Conn.CONNECTED || _state.value.tx) return
+        btPtt?.let { it.txing = true; it.reclaimSoon() }
         c.key()
         audio?.startCapture()
         // 300 ms of silence before the start burst: the first frames of a transmission reach the node
@@ -365,7 +386,13 @@ object Radio {
     }
 
     fun pttUp() {
+        if (pendingTx) {                    // released before the BT mic came up
+            pendingTx = false; mainH.removeCallbacks(txNow)
+            btPtt?.routeIdle()
+            return
+        }
         if (!_state.value.tx) return
+        btPtt?.let { it.txing = false; it.routeIdle() }   // close SCO: receive goes back to A2DP
         txGuardJob?.cancel()
         val c = client
         val unkey = {
@@ -384,7 +411,47 @@ object Radio {
         if (secs >= 0.5) log(Lang.strings(app).getString(R.string.ev_tx, secs), LogEvent.Kind.TX)
     }
 
-    fun togglePtt() = if (_state.value.tx) pttUp() else pttDown()
+    fun togglePtt() = if (_state.value.tx || pendingTx) pttUp() else pttDown()
+
+    // ----------------------------------------------------------------- Bluetooth speaker-mic
+
+    private var btPtt: BtPtt? = null
+    private var btRx: android.content.BroadcastReceiver? = null
+    private var bridgeAliveMs = 0L
+
+    /** Hold the speaker-mic's PTT only while connected to a node and only if enabled in Settings. */
+    fun updateBtPtt() {
+        val want = prefs.btPtt && _state.value.conn != Conn.DISCONNECTED
+        if (want == (btPtt != null)) return
+        if (!want) {
+            btPtt?.stop(); btPtt = null
+            btRx?.let { runCatching { app.unregisterReceiver(it) } }; btRx = null
+            return
+        }
+        val b = BtPtt(app, useMic = { prefs.btMic }, onDown = { pttDown() }, onUp = { pttUp() },
+            log = { m -> android.util.Log.i("AslBtPtt", m) })
+        val rx = object : android.content.BroadcastReceiver() {
+            override fun onReceive(c: Context?, i: android.content.Intent?) {
+                when (i?.action) {
+                    android.media.AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED ->
+                        if (i.getIntExtra(android.media.AudioManager.EXTRA_SCO_AUDIO_STATE, -1) ==
+                            android.media.AudioManager.SCO_AUDIO_STATE_CONNECTED && pendingTx) {
+                            mainH.removeCallbacks(txNow); txNow.run()
+                        }
+                    BRIDGE_ALIVE -> { bridgeAliveMs = System.currentTimeMillis(); btPtt?.yieldTo(true) }
+                    BRIDGE_GONE -> { bridgeAliveMs = 0L; btPtt?.yieldTo(false) }
+                }
+            }
+        }
+        val f = android.content.IntentFilter().apply {
+            addAction(android.media.AudioManager.ACTION_SCO_AUDIO_STATE_UPDATED); addAction(BRIDGE_ALIVE); addAction(BRIDGE_GONE)
+        }
+        if (android.os.Build.VERSION.SDK_INT >= 33) app.registerReceiver(rx, f, Context.RECEIVER_EXPORTED)
+        else @Suppress("UnspecifiedRegisterReceiverFlag") app.registerReceiver(rx, f)
+        btRx = rx
+        btPtt = b
+        mainH.post { b.start(); if (System.currentTimeMillis() - bridgeAliveMs < 8000) b.yieldTo(true) }
+    }
 
     private fun totTick(last: Boolean) {
         when (prefs.totWarn) {

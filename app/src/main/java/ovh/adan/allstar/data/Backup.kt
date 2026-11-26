@@ -40,7 +40,7 @@ object Backup {
             .put("perm", JSONObject().apply { profiles.forEach { put(it.id, JSONArray(prefs.permanentLinks(it.id).toList())) } })
             .put("settings", JSONObject()
                 .put("pttMode", prefs.pttMode.name).put("totWarn", prefs.totWarn.name).put("micGain", prefs.micGain.toDouble())
-                .put("volumeKeyPtt", prefs.volumeKeyPtt).put("txTimeout", prefs.txTimeoutSec)
+                .put("volumeKeyPtt", prefs.volumeKeyPtt).put("btPtt", prefs.btPtt).put("btMic", prefs.btMic).put("txTimeout", prefs.txTimeoutSec)
                 .put("autoConnect", prefs.autoConnect).put("startOnBoot", prefs.startOnBoot)
                 .put("sendCallerId", prefs.sendCallerId).put("keepScreenOn", prefs.keepScreenOn)
                 .put("lang", Lang.code(ctx)))
@@ -94,6 +94,8 @@ object Backup {
             if (s.has("totWarn")) runCatching { prefs.totWarn = TotWarn.valueOf(s.getString("totWarn")) }
             if (s.has("micGain")) prefs.micGain = s.getDouble("micGain").toFloat().coerceIn(0.5f, 4f)
             if (s.has("volumeKeyPtt")) prefs.volumeKeyPtt = s.getBoolean("volumeKeyPtt")
+            if (s.has("btPtt")) prefs.btPtt = s.getBoolean("btPtt")
+            if (s.has("btMic")) prefs.btMic = s.getBoolean("btMic")
             if (s.has("txTimeout")) prefs.txTimeoutSec = s.getInt("txTimeout").coerceIn(30, 600)
             if (s.has("autoConnect")) prefs.autoConnect = s.getBoolean("autoConnect")
             if (s.has("startOnBoot")) prefs.startOnBoot = s.getBoolean("startOnBoot")

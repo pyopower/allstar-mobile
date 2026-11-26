@@ -72,6 +72,10 @@
     <string name="ptt">PTT</string>
     <string name="ptt_hold">Maintenir</string>
     <string name="ptt_toggle">Bascule</string>
+    <string name="bt_ptt">PTT du micro Bluetooth</string>
+    <string name="bt_ptt_sub">Abbree et similaires : son bouton PTT émet. Si PTT Bridge est ouvert, il garde le bouton</string>
+    <string name="bt_mic">Utiliser son micro</string>
+    <string name="bt_mic_sub">Émettre avec le micro Bluetooth au lieu du téléphone (Android 12+)</string>
     <string name="volume_ptt">La touche volume bas sert de PTT</string>
     <string name="volume_ptt_sub">Quand l\'app est à l\'écran</string>
     <string name="mic_gain">Gain du micro</string>

@@ -79,6 +79,10 @@
     <string name="ptt">Pulsar para hablar</string>
     <string name="ptt_hold">Mantener</string>
     <string name="ptt_toggle">Conmutar</string>
+    <string name="bt_ptt">PTT del micro Bluetooth</string>
+    <string name="bt_ptt_sub">Abbree y similares: su botón PTT transmite. Si PTT Bridge está abierto, él se queda el botón</string>
+    <string name="bt_mic">Usar su micrófono</string>
+    <string name="bt_mic_sub">Transmitir desde el micro Bluetooth en vez del teléfono (Android 12+)</string>
     <string name="volume_ptt">Tecla de bajar volumen como PTT</string>
     <string name="volume_ptt_sub">Mientras la app está en pantalla</string>
     <string name="mic_gain">Ganancia del micrófono</string>

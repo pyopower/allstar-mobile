@@ -72,6 +72,10 @@
     <string name="ptt">PTT</string>
     <string name="ptt_hold">Halten</string>
     <string name="ptt_toggle">Umschalten</string>
+    <string name="bt_ptt">PTT des Bluetooth-Handmikrofons</string>
+    <string name="bt_ptt_sub">Abbree u. ä.: seine PTT-Taste sendet. Läuft PTT Bridge, behält es die Taste</string>
+    <string name="bt_mic">Sein Mikrofon verwenden</string>
+    <string name="bt_mic_sub">Über das Bluetooth-Mikrofon statt des Telefons senden (Android 12+)</string>
     <string name="volume_ptt">Leiser-Taste ist PTT</string>
     <string name="volume_ptt_sub">Solange die App angezeigt wird</string>
     <string name="mic_gain">Mikrofonverstärkung</string>

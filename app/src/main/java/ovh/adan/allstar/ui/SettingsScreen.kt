@@ -176,6 +176,12 @@ fun SettingsScreen(
                         }
                     }
                 }
+                ToggleRow(stringResource(R.string.bt_ptt), stringResource(R.string.bt_ptt_sub), prefs.btPtt) {
+                    prefs.btPtt = it; Radio.updateBtPtt(); onSettingsChanged()
+                }
+                if (prefs.btPtt) ToggleRow(stringResource(R.string.bt_mic), stringResource(R.string.bt_mic_sub), prefs.btMic) {
+                    prefs.btMic = it; onSettingsChanged()
+                }
                 ToggleRow(stringResource(R.string.volume_ptt), stringResource(R.string.volume_ptt_sub), prefs.volumeKeyPtt) {
                     prefs.volumeKeyPtt = it; onSettingsChanged()
                 }
