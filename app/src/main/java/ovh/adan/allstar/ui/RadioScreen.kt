@@ -64,6 +64,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -289,7 +290,8 @@ private fun StatusCard(state: RadioState) {
 
 @Composable
 private fun LinkedRow(l: LinkedNode, canControl: Boolean, talking: Boolean, onOpen: (String) -> Unit) {
-    val info = Radio.directory.lookup(l.number)
+    val echoList = Radio.directory.echo.collectAsState().value   // read it: repaint when the EchoLink list arrives
+    val info = remember(l.number, echoList) { Radio.directory.lookup(l.number) }
     val rc = LocalRadioColors.current
     val border by animateColorAsState(if (talking) rc.rx else Color.Transparent, label = "talk")
     Card(

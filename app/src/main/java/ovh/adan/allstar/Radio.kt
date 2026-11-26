@@ -17,6 +17,7 @@ import ovh.adan.allstar.audio.HamCallerId
 import ovh.adan.allstar.data.LinkedNode
 import ovh.adan.allstar.data.NodeDirectory
 import ovh.adan.allstar.data.NodeStats
+import ovh.adan.allstar.data.isEchoLinkNumber
 import ovh.adan.allstar.data.Prefs
 import ovh.adan.allstar.data.AslAccount
 import ovh.adan.allstar.data.Profile
@@ -510,6 +511,25 @@ object Radio {
             (old - now).forEach { log(Lang.strings(app).getString(R.string.ev_unlinked, describe(it))) }
         }
         _state.update { it.copy(links = clean, linksFromNode = it.linksFromNode || fromNode) }
+        rememberLinkedEchoLink(now)
+    }
+
+    private var elFetchAt = 0L
+
+    /** Keep the names of linked EchoLink nodes, so a conference still shows its name when it drops
+     *  for a while out of the public EchoLink list (it does when its user count changes). */
+    private fun rememberLinkedEchoLink(nums: Set<String>) {
+        val el = nums.filter(::isEchoLinkNumber)
+        if (el.isEmpty()) return
+        el.forEach(directory::rememberEchoLink)
+        val missing = el.filter { directory.lookup(it)?.callsign.isNullOrBlank() }
+        val t = SystemClock.elapsedRealtime()
+        if (missing.isEmpty() || (elFetchAt != 0L && t - elFetchAt < 5 * 60_000L)) return
+        elFetchAt = t
+        scope.launch(Dispatchers.IO) {
+            directory.loadEchoLink()
+            missing.forEach(directory::rememberEchoLink)
+        }
     }
 
     // ----------------------------------------------------------------- log
