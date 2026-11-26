@@ -436,7 +436,23 @@ object Radio {
         val code = _state.value.profile?.permUnlink.orEmpty()
         markPermanent(n, false)
         if (permanent && code.isNotBlank()) dtmf(code + n, Lang.strings(app).getString(R.string.ev_unlink_perm, describe(n)))
-        else dtmf("*1$n", Lang.strings(app).getString(R.string.ev_unlink, describe(n)))
+        else { dtmf("*1$n", Lang.strings(app).getString(R.string.ev_unlink, describe(n))); retryAsPermanent(listOf(n)) }
+    }
+
+    /** app_rpt ignores *1 for a link made permanent elsewhere (Allmon, another client, a script):
+     *  if it is still there a few seconds later, send the permanent-unlink code, which drops both kinds. */
+    private fun retryAsPermanent(nodes: List<String>, waitMs: Long = 7000) {
+        val code = _state.value.profile?.permUnlink.orEmpty()
+        if (nodes.isEmpty() || code.isBlank() || code == "*1") return
+        scope.launch {
+            delay(waitMs)
+            if (_state.value.conn != Conn.CONNECTED) return@launch
+            val still = nodes.filter { n -> _state.value.links.any { it.number == n } }
+            still.forEachIndexed { i, n ->
+                if (i > 0) delay(200L * (n.length + 2) + 1500)
+                dtmf(code + n, Lang.strings(app).getString(R.string.ev_unlink_perm, describe(n)))
+            }
+        }
     }
 
     fun isPermanent(n: String): Boolean = _state.value.profile?.let { prefs.permanentLinks(it.id).contains(n) } ?: false
@@ -468,6 +484,8 @@ object Radio {
             }
         }.apply { isDaemon = true }.start()
         refreshLinksSoon()
+        val plain = targets.filter { codes.getValue(it) == "*1" }
+        retryAsPermanent(plain, 7000 + targets.sumOf { 200L * (it.length + 2) + 1500 })
     }
 
     fun describe(n: String): String {
